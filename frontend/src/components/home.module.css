@@ -1,0 +1,33 @@
+.home_container {
+    display: flex;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+}
+.home {
+    max-width: 1290px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.home_table_navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.home_table_navbar_item :hover {
+    cursor: pointer;
+}
+
+
+.home_table_and_chart {
+    display: flex;
+    align-items: center;
+}
