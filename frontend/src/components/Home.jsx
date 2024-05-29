@@ -1,59 +1,164 @@
-import React from 'react'
+import React, {useState} from 'react'
 import style from './home.module.css'
+import { Line } from 'react-chartjs-2'
+import { Link, useNavigate } from 'react-router-dom';
+import popoutIcon from '../assets/popout.svg';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const Home = () => {
+    const navigate = useNavigate();
+    let loadResults = () => {
+        navigate('/results');
+    }
+    const chartData = {
+        labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+        datasets: [
+            {
+                label: 'Stock Price',
+                data: [65, 59, 80, 81, 56, 55],
+                fill: false,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0,
+                pointRadius: 0
+            }
+        ]
+    };
+
+    const chartOptions = {
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                }
+            },
+            y: {
+                grid: {
+                    display: false
+                }
+            }
+        },
+        maintainAspectRatio: false
+    };
+
+    const getClassByValue = (value) => {
+        if (parseFloat(value) > 0) {
+            return style.positive;
+        } else if (parseFloat(value) < 0) {
+            return style.negative;
+        } else {
+            return '';
+        }
+    };
+    let [currentSelection, setCurrentSelection] = useState(0);
+    const changeSelection = (item) => {
+        setCurrentSelection(item.index);
+    }
+
+    let [searchText, setSearchText] = useState('');
+    const handleSearch = (e) => {
+        setSearchText(e.target.value);
+        const clearButton = document.getElementById('clear_button');
+        if (e.target.value !== '') {
+            clearButton.classList.remove(style.slideOut);
+            clearButton.classList.add(style.slideIn);
+        } else {
+            clearButton.classList.remove(style.slideIn);
+            clearButton.classList.add(style.slideOut);
+        }
+    }
+    const clearSearch = () => {
+        setSearchText('');
+        const clearButton = document.querySelector(`.${style.clear_button}`);
+        if (clearButton.classList.contains(style.slideIn)) {
+            clearButton.classList.remove(style.slideIn);
+            clearButton.classList.add(style.slideOut);
+        }
+    }
+
   return (
     <div className={style.home_container}>
 
         <div className={style.home}>
             <div className={style.home_table_navbar}>
-                <div className={style.home_table_navbar_item}>
-                    <h2>Equity</h2>
+            {['Equity', 'Commodities', 'US Treasury Notes', 'REITs', 'Currency', 'Crypto'].map((item, index) => (
+                <div key={index} className={`${style.home_table_navbar_item} ${currentSelection === index ? style.selected : ''}`} onClick={() => changeSelection({index})}>
+                <h2>{item}</h2>
                 </div>
-                <div className={style.home_table_navbar_item}>
-                    <h2>Commodities</h2>
-                </div>
-                <div className={style.home_table_navbar_item}>
-                    <h2>US Treasury Notes</h2>
-                </div>
-                <div className={style.home_table_navbar_item}>
-                    <h2>REITs</h2>
-                </div>
-                <div className={style.home_table_navbar_item}>
-                    <h2>Currency</h2>
-                </div>
-                <div className={style.home_table_navbar_item}>
-                    <h2>Crypto</h2>
-                </div>
+            ))}
             </div>
 
             <div className={style.home_table_and_chart}>
                 <div className={style.home_table}>
-                    <table>
-                        <tr>
-                            <td><input type="checkbox" /></td>
-                            <th>Symbol</th>
-                            <th>Price</th>
-                            <th>52 Week Range</th>
-                            <th>Change</th>
-                            <th>% Change</th>
-                            <th>Volume</th>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox" /></td>
-                            <td>SPY</td>
-                            <td>450.00</td>
-                            <td>0.00</td>
-                            <td>+4.50</td>
-                            <td>+1.00%</td>
-                            <td>12.34M</td>
-                        </tr>
-                    </table>
+                    <div className={style.home_table_search}>
+                        <label>Search for Equity</label>
+                        <div className={style.search_div}><input type="text" value={searchText} onChange={handleSearch} placeholder="Yahoo Finance Ticker" />
+                        <button className={style.clear_button} id='clear_button' onClick={clearSearch}>X</button></div>
+                    </div>
+                    <div className={style.table_container}>
+                        <table>
+                            <thead>
+                                <tr>
+                                    {['', 'Symbol', 'Price', 'Change', '% Change', 'Volume'].map((item, index) => (
+                                        <th key={index}>{item}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {Array.from({ length: 50 }).map((_, index) => (
+                                <tr key={index}>
+                                    <td><center><input type="checkbox" /></center></td>
+                                    <td className={style.table_symbol}>SPY</td>
+                                    {/* <td className='chart_popout_button'><img src={popoutIcon} alt='popout' style={{height:'20px', width:'20px'}} /></td> */}
+                                    <td>450.00</td>
+                                    <td className={getClassByValue('-4.5')}>-4.50</td>
+                                    <td className={getClassByValue('+1.00%')}>+1.00</td>
+                                    <td>12.34M</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div className={style.home_chart}>
-
+                    <div className={style.home_chart_price}>
+                        <Line data = {chartData} options={chartOptions}/>
+                    </div>
+                    <div className={style.home_chart_volatility}>
+                        <Line data = {chartData} options={chartOptions}/>
+                    </div>
+                    <div className={style.home_chart_add_to_bucket}>
+                        <form>
+                            <div className={style.home_chart_add_to_bucket_form}>
+                                <div className={style.form_input}>
+                                    <label>Minimum Weight</label>
+                                    <input type='number' step='0.01' min='0.00' max='1.00' placeholder='0.00' />
+                                </div>
+                                <div className={style.form_input}>
+                                    <label>Maximum Weight</label>
+                                    <input type='number' step='0.01' min='0.00' max='1.00' placeholder='1.00' />
+                                </div>
+                            </div>
+                            <button type='submit'>Add to Bucket</button>
+                        </form>
+                    </div>
                 </div>
             </div>
+            <button className={style.home_chart_next} onClick={loadResults}>Next</button>
         </div>
     </div>
   )

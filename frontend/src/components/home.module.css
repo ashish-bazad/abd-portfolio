@@ -4,15 +4,16 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 100vh;
+    height: 100%;
 }
 .home {
-    max-width: 1290px;
+    max-width: 1440px;
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin: 0px 20px 0px 20px;
 }
 
 
@@ -21,6 +22,15 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    border-bottom: 1px solid #e0e0e0;
+    margin: 0px 20px 20px 20px;
+    padding: 0px 20px 0px 20px;
+}
+.home_table_navbar_item {
+    border: 5px solid white;
+}
+.home_table_navbar_item h2 {
+    margin-bottom: 20px;
 }
 .home_table_navbar_item :hover {
     cursor: pointer;
@@ -30,4 +40,212 @@
 .home_table_and_chart {
     display: flex;
     align-items: center;
+    width: 100%;
 }
+.home_table, .home_chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    margin: 10px 20px 10px 20px;
+}
+.home_chart {
+    border: 1px solid #ddd;
+    height: 77vh;
+    
+    padding: 10px 10px 10px 10px;
+}
+
+.home_chart_price, .home_chart_volatility {
+    margin: 20px 0px 20px 0px;
+    width: 100%;
+    height: 30%;
+}
+Link {
+    margin: 0;
+}
+
+.home_table table {
+    font-weight: bold;
+    width: 100%;
+    height: 80vh;
+    border-collapse: collapse;
+}
+.table_container {
+    width: 100%;
+    height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+.home_table th {
+    z-index: 1;
+    top: 0;
+    position: sticky;
+    background-color: white;
+}
+.home_table tr {
+    height: 35px;
+    text-align: left;
+}
+
+tr:hover {
+    background-color: #f5f5f5;
+}
+td input {
+    width: 20px;
+    height: 20px;
+}
+
+.table_symbol {
+    color: rgb(34, 103, 196);
+    font-weight: bold;
+}
+.positive {
+    color: green;
+}
+
+.negative {
+    color: red;
+}
+
+.home_table_search {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin: 20px 0px 20px 0px;
+}
+.home_table_search label {
+    font-weight: bold;
+}
+.home_table_search input {
+    width: 310px;
+    height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 16px;
+}
+
+.home_chart_add_to_bucket {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin: 20px 0px 20px 0px;
+}
+.home_chart_add_to_bucket_form {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+}
+form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+.home_chart_add_to_bucket label {
+    font-weight: bold;
+    font-size: 14px;
+}
+.form_input {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.form_input input {
+    height: 30px;
+    width: 250px;
+    font-size: 14px;
+}
+form button {
+    height: 40px;
+    width: 150px;
+    background-color: rgb(0, 103, 184);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 14px;
+}
+.home_chart_next {
+    height: 40px;
+    width: 80px;
+    background-color: rgb(0, 103, 184);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+.selected {
+    color: rgb(34, 103, 196);
+    border-bottom: 5px solid rgb(34, 103, 196);
+    transition: border-bottom 0.3s ease;
+}
+
+.clear_button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    /* transition: opacity 0.3s ease, transform 0.3s ease; */
+    opacity: 0;
+    position: absolute;
+    right: 5px;
+    /* transform: translateX(100%); */
+  }
+  
+.clear_button:hover {
+    color: red; /* Change color on hover */
+}
+.home_table_search {
+    position: relative;
+}
+
+.search_div {
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    width: 350px;
+    height: fit-content;
+    position: relative;
+    margin: 0;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+  
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+  
+.slideIn {
+    animation: slideIn 0.3s ease forwards;
+}
+  
+.slideOut {
+    animation: slideOut 0.3s ease forwards;
+}
+  
