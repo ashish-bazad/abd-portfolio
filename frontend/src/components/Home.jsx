@@ -107,7 +107,7 @@ const Home = () => {
                     <div className={style.home_table_search}>
                         <label>Search for Equity</label>
                         <div className={style.search_div}><input type="text" value={searchText} onChange={handleSearch} placeholder="Yahoo Finance Ticker" />
-                        <button className={style.clear_button} id='clear_button' onClick={clearSearch}>X</button></div>
+                        <button className={style.clear_button} id='clear_button' onClick={clearSearch} style={{fontSize:'16px'}}>ⓧ</button></div>
                     </div>
                     <div className={style.table_container}>
                         <table>
