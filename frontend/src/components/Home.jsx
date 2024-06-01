@@ -1,9 +1,10 @@
-import React, {useState} from 'react'
+import React, {useState, useContext, useEffect, useRef} from 'react'
 import style from './home.module.css'
 import { Line } from 'react-chartjs-2'
 import { Link, useNavigate } from 'react-router-dom';
 import popoutIcon from '../assets/popout.svg';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import AuthContext from '../utility/AuthContext';
 
 ChartJS.register(
   CategoryScale,
@@ -16,6 +17,25 @@ ChartJS.register(
 );
 
 const Home = () => {
+    let { get_nifty50_stocks } = useContext(AuthContext);
+    let should_get_nifty50_stocks = useRef(true);
+    let [stocks, setStocks] = useState([]);
+    const get_nifty50_stocks_data = async() => {
+        if(!localStorage.getItem('nifty50_stocks')) {
+            const data = await get_nifty50_stocks();
+            localStorage.setItem('nifty50_stocks', JSON.stringify(data.stocks));
+            setStocks(data.stocks);
+        } else {
+            setStocks(JSON.parse(localStorage.getItem('nifty50_stocks')));
+        }
+    }
+    useEffect( () => {
+        if (should_get_nifty50_stocks.current) {
+            should_get_nifty50_stocks.current = false;
+            get_nifty50_stocks_data();
+        };
+    }, [])
+
     const navigate = useNavigate();
     let loadResults = () => {
         navigate('/results');
@@ -69,9 +89,21 @@ const Home = () => {
         setCurrentSelection(item.index);
     }
 
+    const search_stock = async(stock_name) => {
+        const response = await(fetch(`http://127.0.0.1:8000/api/search/?search=${stock_name}`));
+        const data = await response.json();
+        setStocks(data.stocks);
+    }
     let [searchText, setSearchText] = useState('');
+    useEffect(() => {
+        if(searchText === '') {
+            setStocks(JSON.parse(localStorage.getItem('nifty50_stocks')));
+        } else {
+            search_stock(searchText.toUpperCase());
+        }
+    }, [searchText])
     const handleSearch = (e) => {
-        setSearchText(e.target.value);
+        setSearchText((e.target.value).toUpperCase());
         const clearButton = document.getElementById('clear_button');
         if (e.target.value !== '') {
             clearButton.classList.remove(style.slideOut);
@@ -119,11 +151,10 @@ const Home = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                            {Array.from({ length: 50 }).map((_, index) => (
+                            {stocks.map((_, index) => (
                                 <tr key={index}>
                                     <td><center><input type="checkbox" /></center></td>
-                                    <td className={style.table_symbol}>SPY</td>
-                                    {/* <td className='chart_popout_button'><img src={popoutIcon} alt='popout' style={{height:'20px', width:'20px'}} /></td> */}
+                                    <td className={style.table_symbol}>{stocks[index]}</td>
                                     <td>450.00</td>
                                     <td className={getClassByValue('-4.5')}>-4.50</td>
                                     <td className={getClassByValue('+1.00%')}>+1.00</td>
