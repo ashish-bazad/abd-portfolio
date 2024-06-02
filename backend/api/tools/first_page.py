@@ -13,7 +13,7 @@ OUTPUT:
         volatility of selected ticker for chart
 """
 
-import data
+from . import data
 import pandas as pd
 import numpy as np
 

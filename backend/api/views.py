@@ -2,7 +2,7 @@ import os
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from tools import first_page
+from .tools import first_page
 
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools/NSE"), 'r') as f:
     stocks = [line[:-1] for line in f.readlines()]
