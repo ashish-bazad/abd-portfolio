@@ -17,3 +17,9 @@ def search(request):
 @api_view(['GET'])
 def get_NIFTY_50(request):
     return Response({"stocks": nifty50}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_stock_data(request):
+    stock_list = [stock+".NS" for stock in request.GET.get('stocks', None).split(',')]
+    table, price_data, volatility_data = first_page.initialize(stock_list)
+    return Response({"table": table, "price_data": price_data, "volatility_data": volatility_data}, status=status.HTTP_200_OK)

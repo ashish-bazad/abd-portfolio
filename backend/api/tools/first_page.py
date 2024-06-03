@@ -29,7 +29,7 @@ def initialize(stock_list):
     change_in_price = np.array(prices.iloc[-1,:] - prices.iloc[0,:])
     percent_change_in_price = np.array((prices.iloc[-1,:] / prices.iloc[0,:] - 1)*100)
 
-    table_dict = {'SYMBOLS':symbols, 'PRICE':current_prices, '52WeekHigh':high_52Week, '52WeekLow':low_52Week, 'CHANGE':change_in_price, '%_CHANGE':percent_change_in_price}
+    table_dict = {'SYMBOLS':symbols, 'PRICE':current_prices, 'HIGH':high_52Week, 'LOW':low_52Week, 'CHANGE':change_in_price, 'PCHANGE':percent_change_in_price}
 
     ## ADDING CHART DATA
 
