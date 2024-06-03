@@ -51,14 +51,14 @@
 .home_chart {
     border: 1px solid #ddd;
     height: 77vh;
-    
+    overflow-y: scroll;
     padding: 10px 10px 10px 10px;
 }
 
 .home_chart_price, .home_chart_volatility {
     margin: 20px 0px 20px 0px;
     width: 100%;
-    height: 30%;
+    height: 200px;
 }
 Link {
     margin: 0;
@@ -68,6 +68,7 @@ Link {
     font-weight: bold;
     width: 100%;
     /* height: 80vh; */
+    font-size: 14px;
     border-collapse: collapse;
 }
 .table_container {
@@ -98,6 +99,10 @@ td input {
 .table_symbol {
     color: rgb(34, 103, 196);
     font-weight: bold;
+}
+.table_symbol:hover {
+    cursor: pointer;
+
 }
 .positive {
     color: green;
@@ -158,7 +163,7 @@ form {
 }
 .form_input input {
     height: 30px;
-    width: 250px;
+    width: 100px;
     font-size: 14px;
 }
 form button {
@@ -247,3 +252,42 @@ form button {
     animation: slideOut 0.3s ease forwards;
 }
   
+
+.table_range {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+
+}
+.table_range_length {
+    width: 90%;
+    border-radius: 15px;
+    height: 2px;
+    background-color: red;
+}
+.table_range_fill {
+    z-index: 1;
+    height: 2px;
+    background-color: green;
+}
+.table_range_label {
+    width: 100%;
+    font-size: 10px;
+    font-weight: normal;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px
+}
+
+.controller_buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+    height: 100%;
+    margin-top: 10px;
+}

@@ -113,8 +113,8 @@ const Results = () => {
                 <label style={{fontWeight:'bold'}}>Exposure Limits</label>
                 <div className={style.results_exposure_limits_items}>
                     <div className={style.results_exposure_limits_item}>
-                        <select >
-                            <option value={0} disabled={true} selected={true}>Select Bucket</option>
+                        <select defaultValue={0} >
+                            <option value={0} disabled={true}>Select Bucket</option>
                             <option value="option1">Bucket 1</option>
                             <option value="option2">Bucket 2</option>
                             <option value="option3">Bucket 3</option>
@@ -125,8 +125,8 @@ const Results = () => {
                         </div>
                     </div>
                     <div className={style.results_exposure_limits_item}>
-                        <select>
-                            <option value={0} disabled={true} selected={true}>Select Stock</option>
+                        <select defaultValue={0}>
+                            <option value={0} disabled={true}>Select Stock</option>
                             <option value="option1">Stock 1</option>
                             <option value="option2">Stock 2</option>
                             <option value="option3">Stock 3</option>
