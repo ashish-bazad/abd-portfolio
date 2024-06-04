@@ -21,5 +21,6 @@ def get_NIFTY_50(request):
 @api_view(['GET'])
 def get_stock_data(request):
     stock_list = [stock+".NS" for stock in request.GET.get('stocks', None).split(',')]
-    table, price_data, volatility_data = first_page.initialize(stock_list)
+    period = str(request.GET.get('period', '1y'))
+    table, price_data, volatility_data = first_page.initialize(stock_list,  period=period)
     return Response({"table": table, "price_data": price_data, "volatility_data": volatility_data}, status=status.HTTP_200_OK)

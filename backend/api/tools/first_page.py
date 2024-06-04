@@ -18,9 +18,9 @@ import pandas as pd
 import numpy as np
 
 ## GATHER DATA FOR TABLE: 1-year price data
-def initialize(stock_list):
+def initialize(stock_list, period):
 
-    prices = data.fetch_data(stock_list, period='1y')
+    prices = data.fetch_data(stock_list, period=period)
 
     symbols = np.array(prices.columns)
     current_prices = np.array(prices.iloc[-1,:])

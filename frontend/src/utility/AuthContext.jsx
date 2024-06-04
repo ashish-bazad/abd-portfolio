@@ -3,14 +3,18 @@ const AuthContext = createContext();
 export default AuthContext;
 
 export const AuthProvider = ({children}) => {
-    
+
     const get_nifty50_stocks = async() => {
         const response = await(fetch('http://127.0.0.1:8000/api/nifty50/'));
         const data = await response.json();
         return data;
     }
     const get_stock_data = async(stocks) => {
-        const response = await(fetch(`http://127.0.0.1:8000/api/stock_data/?stocks=${stocks.map(stock => encodeURIComponent(stock)).join(',')}`));
+        let period = localStorage.getItem('period');
+        if(period === null) {
+            period = '1y';
+        }
+        const response = await(fetch(`http://127.0.0.1:8000/api/stock_data/?stocks=${stocks.map(stock => encodeURIComponent(stock)).join(',')}&period=${period}`));
         const data = await response.json();
         return data;
     }

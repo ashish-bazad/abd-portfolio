@@ -32,8 +32,16 @@ const Home = () => {
     let [selectedStock, setSelectedStock] = useState(null);
     let [minimum_weight, setMinimumWeight] = useState(0);
     let [maximum_weight, setMaximumWeight] = useState(1);
+    let [show_bucket, setShowBucket] = useState(false);
+    let [tmpReload, setTmpReload] = useState(false);
+    let [showSettings, setShowSettings] = useState(false);
+    let period = localStorage.getItem('period') ? localStorage.getItem('period') : '1y';
+    let [tperiod, setTperiod] = useState(period);
     const navigate = useNavigate();
 
+    useEffect(() => {
+        setTperiod(period);
+    }, [period])
     useEffect(() => {
         if(should_create_equity_bucket.current) {
             should_create_equity_bucket.current = false;
@@ -233,13 +241,71 @@ const Home = () => {
         let max_weight = parseFloat(maximum_weight), min_weight = parseFloat(minimum_weight);
         bucket = [...bucket, [stock, min_weight, max_weight]];
         localStorage.setItem('equity_bucket', JSON.stringify(bucket));
-        console.log(bucket);j
         window.location.reload();
     }
 
   return (
     <div className={style.home_container}>
-
+        {showSettings && (
+            <div className={style.bucket_container} onClick={() => setShowSettings(false)}>
+                <div className={style.bucket} onClick={(e) => e.stopPropagation()}>
+                    <div className={style.settings_header}>
+                        <h2>Settings</h2>
+                    </div>
+                    <div className={style.settings_options}>
+                        <label style={{fontWeight:'bold', fontSize:'14px'}}>Period : </label>
+                        <select value={tperiod} onChange={(e) => setTperiod(e.target.value)}>
+                            <option value='1d'>1 Day</option>
+                            <option value='5d'>5 Days</option>
+                            <option value='1mo'>1 Month</option>
+                            <option value='3mo'>3 Months</option>
+                            <option value='6mo'>6 Months</option>
+                            <option value='1y'>1 Year</option>
+                            <option value='2y'>2 Years</option>
+                            <option value='5y'>5 Years</option>
+                            <option value='10y'>10 Years</option>
+                        </select>
+                    </div>
+                    <span className={style.closeButton} onClick={() => setShowSettings(false)}>ⓧ</span>
+                    <div className={style.settings_buttons}>
+                        {tperiod !== period && <button className={style.settings_cancel} onClick={() => {setTperiod(period);}}>Cancel</button>}
+                        {tperiod !== period && <button className={style.settings_apply} onClick={() => {localStorage.setItem('period', tperiod); localStorage.removeItem('stocks_list_data'); window.location.reload()}}>Apply</button>}
+                    </div>
+                </div>
+            </div>
+        )}
+        {show_bucket && (
+            <div className={style.bucket_container} onClick={() => setShowBucket(false)}>
+                <div className={style.bucket} onClick={(e) => e.stopPropagation()}>
+                    <div className={style.bucket_header}>
+                        <h2>Equity Bucket</h2>
+                    </div>
+                    <span className={style.closeButton} onClick={() => setShowBucket(false)}>ⓧ</span>
+                    <div className={style.bucket_table}>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><center>Delete</center></th>
+                                    <th>Stock</th>
+                                    <th>Minimum Weight</th>
+                                    <th>Maximum Weight</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {JSON.parse(localStorage.getItem('equity_bucket')).map((item, index) => (
+                                    <tr key={index}>
+                                        <td><center><svg className={style.deleteIcon} onClick={() => {let bucket = JSON.parse(localStorage.getItem('equity_bucket'));bucket.splice(index, 1);localStorage.setItem('equity_bucket', JSON.stringify(bucket));setTmpReload(!tmpReload);}} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="14" height="14" viewBox="0 0 24 24"> <path d="M 10.806641 2 C 10.289641 2 9.7956875 2.2043125 9.4296875 2.5703125 L 9 3 L 4 3 A 1.0001 1.0001 0 1 0 4 5 L 20 5 A 1.0001 1.0001 0 1 0 20 3 L 15 3 L 14.570312 2.5703125 C 14.205312 2.2043125 13.710359 2 13.193359 2 L 10.806641 2 z M 4.3652344 7 L 5.8925781 20.263672 C 6.0245781 21.253672 6.877 22 7.875 22 L 16.123047 22 C 17.121047 22 17.974422 21.254859 18.107422 20.255859 L 19.634766 7 L 4.3652344 7 z"></path></svg></center></td>
+                                        <td>{item[0]}</td>
+                                        <td>{item[1]}</td>
+                                        <td>{item[2]}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        )}
         <div className={style.home}>
             <div className={style.home_table_navbar}>
             {['Equity', 'Commodities', 'US Treasury Notes', 'REITs', 'Currency', 'Crypto'].map((item, index) => (
@@ -330,13 +396,10 @@ const Home = () => {
                 </div>
             </div>
             <div className={style.controller_buttons}>
-                <button className={style.home_chart_next} style={{width:'100px'}} onClick={loadResults}>Settings</button>
-                <button className={style.home_chart_next} style={{width:'150px'}} onClick={() => {
-                    localStorage.removeItem('stocks_list');
-                    window.location.reload();
-                }}>Reset Stocks List</button>
-                <button className={style.home_chart_next} style={{width:'120px'}} onClick={loadResults}>View Buckets</button>
-                <button className={style.home_chart_next} style={{width:'120px'}} onClick={localStorage.setItem('equity_bucket', JSON.stringify([]))}>Reset Bucket</button>
+                <button className={style.home_chart_next} style={{width:'100px'}} onClick={() => setShowSettings(true)}>Settings</button>
+                <button className={style.home_chart_next} style={{width:'120px'}} onClick={() => setShowBucket(true)}>View Buckets</button>
+                <button className={style.home_chart_next} style={{width:'150px'}} onClick={() => {localStorage.removeItem('stocks_list');window.location.reload();}}>Reset Stocks List</button>
+                <button className={style.home_chart_next} style={{width:'120px'}} onClick={() => {localStorage.setItem('equity_bucket', JSON.stringify([])); window.location.reload()}}>Reset Bucket</button>
                 <button className={style.home_chart_next} onClick={loadResults}>Next</button>
             </div>
         </div>
