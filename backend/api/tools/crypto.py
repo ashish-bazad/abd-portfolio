@@ -37,7 +37,7 @@ crypto_tickers = {
     'MKR-USD': 'Maker',
     'XLM-USD': 'Stellar',
     'AAVE-USD': 'Aave',
-    'GRT-USD': 'The Graph',
+    # 'GRT-USD': 'The Graph',
     'FRAX-USD': 'Frax',
     'FTM-USD': 'Fantom',
     'RPL-USD': 'Rocket Pool',

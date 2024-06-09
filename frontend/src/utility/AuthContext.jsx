@@ -4,24 +4,48 @@ export default AuthContext;
 
 export const AuthProvider = ({children}) => {
 
-    const get_nifty50_stocks = async() => {
-        const response = await(fetch('http://127.0.0.1:8000/api/nifty50/'));
+    const get_tickers_equity = async() => {
+        const response = await(fetch('http://127.0.0.1:8000/api/tickers_equity/'));
         const data = await response.json();
         return data;
     }
-    const get_stock_data = async(stocks) => {
+    const get_tickers_commodities = async() => {
+        const response = await(fetch('http://127.0.0.1:8000/api/tickers_commodities/'));
+        const data = await response.json();
+        return data;
+    }
+    const get_tickers_crypto = async() => {
+        const response = await(fetch('http://127.0.0.1:8000/api/tickers_crypto/'));
+        const data = await response.json();
+        return data;
+    }
+    const get_tickers_t_notes = async() => {
+        const response = await(fetch('http://127.0.0.1:8000/api/tickers_t_notes/'));
+        const data = await response.json();
+        return data;
+    }
+    const get_tickers_reit = async() => {
+        const response = await(fetch('http://127.0.0.1:8000/api/tickers_reit/'));
+        const data = await response.json();
+        return data;
+    }
+    const get_tickers_data = async(tickers) => {
         let period = localStorage.getItem('period');
         if(period === null) {
             period = '1y';
         }
-        const response = await(fetch(`http://127.0.0.1:8000/api/stock_data/?stocks=${stocks.map(stock => encodeURIComponent(stock)).join(',')}&period=${period}`));
+        const response = await(fetch(`http://127.0.0.1:8000/api/tickers_data/?tickers=${tickers.map(ticker => encodeURIComponent(ticker)).join(',')}&period=${period}`));
         const data = await response.json();
         return data;
     }
 
     let contextData = {
-        get_nifty50_stocks,
-        get_stock_data,
+        get_tickers_equity,
+        get_tickers_commodities,
+        get_tickers_crypto,
+        get_tickers_t_notes,
+        get_tickers_reit,
+        get_tickers_data,
 
     }
     return (

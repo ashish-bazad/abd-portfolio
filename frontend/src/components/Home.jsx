@@ -26,19 +26,22 @@ ChartJS.register(
 );
 
 const Home = () => {
-  let { get_nifty50_stocks, get_stock_data } = useContext(AuthContext);
-  let should_get_nifty50_stocks = useRef(true);
-  let should_create_equity_bucket = useRef(true);
-  let current_minimum_sums = useRef(0);
-  let [stocks, setStocks] = useState([]);
-  let [stocks_table_data, setStocksTableData] = useState(null);
-  let [currentSelection, setCurrentSelection] = useState(0);
+  let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data } = useContext(AuthContext);
+  let should_get_tickers = useRef(true);
+  let should_create_bucket = useRef(true);
+  let cms = useRef(0);
+  let [tickers, setTickers] = useState({});
+  let [tickers_table_data, setTickersTableData] = useState(null);
+  let [selected_ticker, setSelectedTicker] = useState(null);
+  if(!localStorage.getItem('selection')) {
+    localStorage.setItem('selection', 0);
+  }
+  let [currentSelection, setCurrentSelection] = useState(parseInt(localStorage.getItem('selection')));
   let [searchText, setSearchText] = useState("");
   let [searching, setSearching] = useState(false);
-  let [searchedStocks, setSearchedStocks] = useState([]);
+  let [searched_tickers, setSearchedTickers] = useState({});
   let [checkedItems, setCheckedItems] = useState([]);
   let [adding_loading, setAdding_loading] = useState(false);
-  let [selectedStock, setSelectedStock] = useState(null);
   let [minimum_weight, setMinimumWeight] = useState(0);
   let [maximum_weight, setMaximumWeight] = useState(1);
   let [show_bucket, setShowBucket] = useState(false);
@@ -48,81 +51,143 @@ const Home = () => {
   let [tperiod, setTperiod] = useState(period);
   const navigate = useNavigate();
 
+  var current_selection = "equity";
+  switch (currentSelection) {
+    case 0:
+      current_selection = "equity";
+      break;
+    case 1:
+      current_selection = "commodities";
+      break;
+    case 2:
+      current_selection = "t_notes";
+      break;
+    case 3:
+      current_selection = "reit";
+      break;
+    default:
+      current_selection = "crypto";
+  }
+
   useEffect(() => {
     setTperiod(period);
   }, [period]);
+
   useEffect(() => {
-    if (should_create_equity_bucket.current) {
-      should_create_equity_bucket.current = false;
+    if (should_create_bucket.current) {
+      should_create_bucket.current = false;
+      // equity bucket
       if (!localStorage.getItem("equity_bucket")) {
         localStorage.setItem("equity_bucket", JSON.stringify([]));
+      }
+      // commodity bucket
+      if (!localStorage.getItem("commodities_bucket")) {
+        localStorage.setItem("commodities_bucket", JSON.stringify([]));
+      }
+      // treasury notes bucket
+      if (!localStorage.getItem("t_notes_bucket")) {
+        localStorage.setItem("t_notes_bucket", JSON.stringify([]));
+      }
+      // reits bucket
+      if (!localStorage.getItem("reits_bucket")) {
+        localStorage.setItem("reit_bucket", JSON.stringify([]));
+      }
+      // crypto bucket
+      if (!localStorage.getItem("crypto_bucket")) {
+        localStorage.setItem("crypto_bucket", JSON.stringify([]));
+      }
+      let bucket = JSON.parse(localStorage.getItem(`${current_selection}_bucket`));
+      if (bucket.length === 0) {
+        cms.current = 0;
       } else {
-        let bucket = JSON.parse(localStorage.getItem("equity_bucket"));
-        if (bucket.length === 0) {
-          current_minimum_sums.current = 0;
-        } else {
-          for (let i = 0; i < bucket.length; i++) {
-            current_minimum_sums.current += bucket[i][1];
-          }
+        for (let i = 0; i < bucket.length; i++) {
+          cms.current += bucket[i][1];
         }
       }
     }
   }, []);
 
-  const gather_stock_data = async (stock) => {
-    setSelectedStock(stock);
+  const gather_ticker_data = async (ticker) => {
+    setSelectedTicker(ticker);
   };
-  const get_nifty50_stocks_data = async () => {
+  const get_tickers_table_data = async () => {
     setAdding_loading(true);
     const currentTime = new Date();
     const updateTime = new Date(currentTime);
     updateTime.setHours(15, 30, 0, 0); // Set update time to 3:30 PM
 
-    let lastUpdated = localStorage.getItem("stocks_list_last_updated");
+    let lastUpdated = localStorage.getItem("tickers_list_last_updated");
     lastUpdated = lastUpdated ? new Date(lastUpdated) : null;
 
     // Check if lastUpdated is from a different day or if it is before today's 3:30 PM
     const needsUpdate =
       !lastUpdated ||
-      !localStorage.getItem("stocks_list") ||
-      !localStorage.getItem("stocks_list_data") ||
+      !localStorage.getItem("equity_list") ||
+      !localStorage.getItem("equity_list_data") ||
+      !localStorage.getItem("commodities_list") ||
+      !localStorage.getItem("commodities_list_data") ||
+      !localStorage.getItem("t_notes_list") ||
+      !localStorage.getItem("t_notes_list_data") ||
+      !localStorage.getItem("reit_list") ||
+      !localStorage.getItem("reit_list_data") ||
+      // !localStorage.getItem("crypto_list") ||
+      // !localStorage.getItem("crypto_list_data") ||
       lastUpdated.toDateString() !== currentTime.toDateString() ||
       (currentTime >= updateTime && lastUpdated < updateTime);
     if (needsUpdate) {
-      // const data = await get_nifty50_stocks();
-      // localStorage.setItem('nifty50_stocks', JSON.stringify(data.stocks));
-      if (!localStorage.getItem("stocks_list")) {
-        const data = await get_nifty50_stocks();
-        localStorage.setItem("stocks_list", JSON.stringify(data.stocks));
-        setStocks(JSON.parse(localStorage.getItem("stocks_list")));
+      // Get the list of tickers
+      if (!localStorage.getItem("equity_list")) {
+        const data = await get_tickers_equity();
+        localStorage.setItem("equity_list", JSON.stringify(data.tickers));
       }
-      localStorage.setItem(
-        "stocks_list_last_updated",
-        currentTime.toISOString(),
-      );
-      const prices_list = await get_stock_data(
-        JSON.parse(localStorage.getItem("stocks_list")),
-      );
-      localStorage.setItem("stocks_list_data", JSON.stringify(prices_list));
-      setCheckedItems(JSON.parse(localStorage.getItem("stocks_list")));
-      setStocksTableData(prices_list.table);
-      setSelectedStock(JSON.parse(localStorage.getItem("stocks_list"))[0]);
+      if (!localStorage.getItem("commodities_list")) {
+        const data = await get_tickers_commodities();
+        localStorage.setItem("commodities_list", JSON.stringify(data.tickers));
+      }
+      if (!localStorage.getItem("t_notes_list")) {
+        const data = await get_tickers_t_notes();
+        localStorage.setItem("t_notes_list", JSON.stringify(data.tickers));
+      }
+      if (!localStorage.getItem("reit_list")) {
+        const data = await get_tickers_reit();
+        localStorage.setItem("reit_list", JSON.stringify(data.tickers));
+      }
+      // if (!localStorage.getItem("crypto_list")) {
+      //   const data = await get_tickers_crypto();
+      //   localStorage.setItem("crypto_list", JSON.stringify(data.tickers));
+      // }
+      setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
+      
+      // Get data for all the tickers
+      let prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("equity_list"))));
+      localStorage.setItem("equity_list_data", JSON.stringify(prices_list));
+      prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("commodities_list"))));
+      localStorage.setItem("commodities_list_data", JSON.stringify(prices_list));
+      prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("t_notes_list"))));
+      localStorage.setItem("t_notes_list_data", JSON.stringify(prices_list));
+      prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("reit_list"))));
+      localStorage.setItem("reit_list_data", JSON.stringify(prices_list));
+      // prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("crypto_list"))));
+      // localStorage.setItem("crypto_list_data", JSON.stringify(prices_list));
+      setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
+      setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
+      setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
+
+      localStorage.setItem("tickers_list_last_updated", currentTime.toISOString());
     } else {
-      setStocks(JSON.parse(localStorage.getItem("stocks_list")));
-      setStocksTableData(
-        JSON.parse(localStorage.getItem("stocks_list_data")).table,
-      );
-      setCheckedItems(JSON.parse(localStorage.getItem("stocks_list")));
-      setSelectedStock(JSON.parse(localStorage.getItem("stocks_list"))[0]);
+      setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
+      setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
+      setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
+      setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
     }
     setAdding_loading(false);
   };
   useEffect(() => {
-    if (should_get_nifty50_stocks.current) {
-      should_get_nifty50_stocks.current = false;
-      get_nifty50_stocks_data();
+    if (should_get_tickers.current) {
+      should_get_tickers.current = false;
+      get_tickers_table_data();
     }
-  }, []);
+  }, [currentSelection]);
 
   let loadResults = () => {
     navigate("/results");
@@ -131,7 +196,7 @@ const Home = () => {
     labels: ["January", "February", "March", "April", "May", "June"],
     datasets: [
       {
-        label: "Stock Price",
+        label: "Ticker Price",
         data: [65, 59, 80, 81, 56, 55],
         fill: false,
         borderColor: "rgb(75, 192, 192)",
@@ -171,27 +236,30 @@ const Home = () => {
     }
   };
   const changeSelection = (item) => {
-    setCurrentSelection(item.index);
+    should_get_tickers.current = true;
+    localStorage.setItem("selection", parseInt(item.index));
+    setCurrentSelection(parseInt(item.index));
   };
 
-  const search_stock = async (stock_name) => {
+  const search_ticker = async (text) => {
     const response = await fetch(
-      `http://127.0.0.1:8000/api/search/?search=${stock_name}`,
+      `http://127.0.0.1:8000/api/search_${current_selection}/?search=${text}`,
     );
     const data = await response.json();
-    setSearchedStocks(data.stocks);
+    setSearchedTickers(data.tickers);
   };
+
   useEffect(() => {
     if (searchText === "") {
-      setStocks(JSON.parse(localStorage.getItem("stocks_list")));
+      setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
       setSearching(false);
     } else {
       setSearching(true);
-      search_stock(searchText.toUpperCase());
+      search_ticker(searchText.toUpperCase());
     }
   }, [searchText]);
   const handleSearch = (e) => {
-    setSearchText(e.target.value.toUpperCase());
+    setSearchText(e.target.value);
     const clearButton = document.getElementById("clear_button");
     if (e.target.value !== "") {
       clearButton.classList.remove(style.slideOut);
@@ -209,44 +277,44 @@ const Home = () => {
       clearButton.classList.add(style.slideOut);
     }
   };
-  const handleCheckboxChange = async (stock) => {
+  const handleCheckboxChange = async (ticker, name) => {
     let tmp = [];
-    let tmp2 = JSON.parse(localStorage.getItem("stocks_list"));
+    let tmp2 = JSON.parse(localStorage.getItem(`${current_selection}_list`));
     setAdding_loading(true);
-    if (checkedItems.includes(stock)) {
-      tmp = checkedItems.filter((item) => item !== stock);
-      var ind = tmp2.indexOf(stock);
-      tmp2.splice(ind, 1);
-      let tmp3 = JSON.parse(localStorage.getItem("stocks_list_data"));
-      delete tmp3.volatility_data[stock + ".NS"];
-      delete tmp3.price_data[stock + ".NS"];
-      tmp3.table.SYMBOLS.splice(ind, 1);
-      tmp3.table.PRICE.splice(ind, 1);
-      tmp3.table.CHANGE.splice(ind, 1);
-      tmp3.table.PCHANGE.splice(ind, 1);
-      tmp3.table.LOW.splice(ind, 1);
-      tmp3.table.HIGH.splice(ind, 1);
-      localStorage.setItem("stocks_list_data", JSON.stringify(tmp3));
-      localStorage.setItem("stocks_list", JSON.stringify(tmp2));
-      setStocks(tmp2);
-      setStocksTableData(tmp3.table);
+    if (checkedItems.includes(ticker)) {
+      tmp = checkedItems.filter((item) => item !== ticker);
+      delete tmp2[ticker];
+      let tmp3 = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
+      delete tmp3.volatility_data[ticker];
+      delete tmp3.price_data[ticker];
+      let ind = tmp3.table_data.SYMBOLS.indexOf(ticker);
+      tmp3.table_data.SYMBOLS.splice(ind, 1);
+      tmp3.table_data.PRICE.splice(ind, 1);
+      tmp3.table_data.CHANGE.splice(ind, 1);
+      tmp3.table_data.PCHANGE.splice(ind, 1);
+      tmp3.table_data.LOW.splice(ind, 1);
+      tmp3.table_data.HIGH.splice(ind, 1);
+      localStorage.setItem(`${current_selection}_list_data`, JSON.stringify(tmp3));
+      localStorage.setItem(`${current_selection}_list`, JSON.stringify(tmp2));
+      setTickers(tmp2);
+      setTickersTableData(tmp3.table_data);
     } else {
-      tmp = [...checkedItems, stock];
-      tmp2.push(stock);
-      let tmp3 = JSON.parse(localStorage.getItem("stocks_list_data"));
-      const data = await get_stock_data([stock]);
-      tmp3.volatility_data[stock + ".NS"] = data.volatility_data[stock + ".NS"];
-      tmp3.price_data[stock + ".NS"] = data.price_data[stock + ".NS"];
-      tmp3.table.SYMBOLS.push(data.table.SYMBOLS[0]);
-      tmp3.table.PRICE.push(data.table.PRICE[0]);
-      tmp3.table.CHANGE.push(data.table.CHANGE[0]);
-      tmp3.table.PCHANGE.push(data.table.PCHANGE[0]);
-      tmp3.table.LOW.push(data.table.LOW[0]);
-      tmp3.table.HIGH.push(data.table.HIGH[0]);
-      localStorage.setItem("stocks_list_data", JSON.stringify(tmp3));
-      localStorage.setItem("stocks_list", JSON.stringify(tmp2));
-      setStocks(tmp2);
-      setStocksTableData(tmp3.table);
+      tmp = [...checkedItems, ticker];
+      tmp2[ticker] = name;
+      let tmp3 = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
+      const data = await get_tickers_data([ticker]);
+      tmp3.volatility_data[ticker] = data.volatility_data[ticker];
+      tmp3.price_data[ticker] = data.price_data[ticker];
+      tmp3.table_data.SYMBOLS.push(data.table_data.SYMBOLS[0]);
+      tmp3.table_data.PRICE.push(data.table_data.PRICE[0]);
+      tmp3.table_data.CHANGE.push(data.table_data.CHANGE[0]);
+      tmp3.table_data.PCHANGE.push(data.table_data.PCHANGE[0]);
+      tmp3.table_data.LOW.push(data.table_data.LOW[0]);
+      tmp3.table_data.HIGH.push(data.table_data.HIGH[0]);
+      localStorage.setItem(`${current_selection}_list_data`, JSON.stringify(tmp3));
+      localStorage.setItem(`${current_selection}_list`, JSON.stringify(tmp2));
+      setTickers(tmp2);
+      setTickersTableData(tmp3.table_data);
     }
     setAdding_loading(false);
     setCheckedItems(tmp);
@@ -254,12 +322,12 @@ const Home = () => {
 
   const handleAddToBucket = (e) => {
     e.preventDefault();
-    let bucket = JSON.parse(localStorage.getItem("equity_bucket"));
-    let stock = selectedStock;
+    let bucket = JSON.parse(localStorage.getItem(`${current_selection}_bucket`));
+    let tick = selected_ticker;
     let max_weight = parseFloat(maximum_weight),
       min_weight = parseFloat(minimum_weight);
-    bucket = [...bucket, [stock, min_weight, max_weight]];
-    localStorage.setItem("equity_bucket", JSON.stringify(bucket));
+    bucket = [...bucket, [tick, min_weight, max_weight]];
+    localStorage.setItem(`${current_selection}_bucket`, JSON.stringify(bucket));
     window.location.reload();
   };
 
@@ -315,7 +383,7 @@ const Home = () => {
                   className={style.settings_apply}
                   onClick={() => {
                     localStorage.setItem("period", tperiod);
-                    localStorage.removeItem("stocks_list_data");
+                    localStorage.removeItem(`${current_selection}_list_data`);
                     window.location.reload();
                   }}
                 >
@@ -333,7 +401,7 @@ const Home = () => {
         >
           <div className={style.bucket} onClick={(e) => e.stopPropagation()}>
             <div className={style.bucket_header}>
-              <h2>Equity Bucket</h2>
+              <h2>Bucket</h2>
             </div>
             <span
               className={style.closeButton}
@@ -348,13 +416,13 @@ const Home = () => {
                     <th>
                       <center>Delete</center>
                     </th>
-                    <th>Stock</th>
+                    <th>Element</th>
                     <th>Minimum Weight</th>
                     <th>Maximum Weight</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {JSON.parse(localStorage.getItem("equity_bucket")).map(
+                  {JSON.parse(localStorage.getItem(`${current_selection}_bucket`)).map(
                     (item, index) => (
                       <tr key={index}>
                         <td>
@@ -363,28 +431,15 @@ const Home = () => {
                               className={style.deleteIcon}
                               onClick={() => {
                                 let bucket = JSON.parse(
-                                  localStorage.getItem("equity_bucket"),
+                                  localStorage.getItem(`${current_selection}_bucket`),
                                 );
                                 bucket.splice(index, 1);
-                                localStorage.setItem(
-                                  "equity_bucket",
-                                  JSON.stringify(bucket),
-                                );
+                                localStorage.setItem(`${current_selection}_bucket`,JSON.stringify(bucket),);
                                 setTmpReload(!tmpReload);
-                              }}
-                              xmlns="http://www.w3.org/2000/svg"
-                              x="0px"
-                              y="0px"
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                            >
-                              {" "}
-                              <path d="M 10.806641 2 C 10.289641 2 9.7956875 2.2043125 9.4296875 2.5703125 L 9 3 L 4 3 A 1.0001 1.0001 0 1 0 4 5 L 20 5 A 1.0001 1.0001 0 1 0 20 3 L 15 3 L 14.570312 2.5703125 C 14.205312 2.2043125 13.710359 2 13.193359 2 L 10.806641 2 z M 4.3652344 7 L 5.8925781 20.263672 C 6.0245781 21.253672 6.877 22 7.875 22 L 16.123047 22 C 17.121047 22 17.974422 21.254859 18.107422 20.255859 L 19.634766 7 L 4.3652344 7 z"></path>
-                            </svg>
+                              }} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="14" height="14" viewBox="0 0 24 24">{" "}<path d="M 10.806641 2 C 10.289641 2 9.7956875 2.2043125 9.4296875 2.5703125 L 9 3 L 4 3 A 1.0001 1.0001 0 1 0 4 5 L 20 5 A 1.0001 1.0001 0 1 0 20 3 L 15 3 L 14.570312 2.5703125 C 14.205312 2.2043125 13.710359 2 13.193359 2 L 10.806641 2 z M 4.3652344 7 L 5.8925781 20.263672 C 6.0245781 21.253672 6.877 22 7.875 22 L 16.123047 22 C 17.121047 22 17.974422 21.254859 18.107422 20.255859 L 19.634766 7 L 4.3652344 7 z"></path></svg>
                           </center>
                         </td>
-                        <td>{item[0]}</td>
+                        <td>{item[0][1]}</td>
                         <td>{item[1]}</td>
                         <td>{item[2]}</td>
                       </tr>
@@ -403,7 +458,6 @@ const Home = () => {
             "Commodities",
             "US Treasury Notes",
             "REITs",
-            "Currency",
             "Crypto",
           ].map((item, index) => (
             <div
@@ -421,110 +475,80 @@ const Home = () => {
             <div className={style.home_table_search}>
               <label>Search for Equity</label>
               <div className={style.search_div}>
-                <input
-                  type="text"
-                  value={searchText}
-                  onChange={handleSearch}
-                  placeholder="Yahoo Finance Ticker"
-                />
-                <button
-                  className={style.clear_button}
-                  id="clear_button"
-                  onClick={clearSearch}
-                  style={{ fontSize: "16px" }}
-                >
-                  ⓧ
-                </button>
+                <input type="text" value={searchText} onChange={handleSearch} placeholder="Yahoo Finance Ticker"/>
+                <button className={style.clear_button}id="clear_button"onClick={clearSearch}style={{ fontSize: "16px" }}>ⓧ</button>
               </div>
             </div>
             <div className={style.table_container}>
               <table>
                 <thead>
                   {searching === false && (
-                    <tr>
-                      {[
-                        "",
-                        "Symbol",
-                        "Price",
-                        "Change",
-                        "% Change",
-                        "Range",
-                      ].map((item, index) => (
-                        <th key={index}>{item}</th>
-                      ))}
-                    </tr>
+                    <tr>{["","Symbol","Price","Change","% Change","Range",].map((item, index) => (<th key={index}>{item}</th>))}</tr>
                   )}
-                  {searching === true && (
-                    <tr>
-                      <th>
-                        <center>Select</center>
-                      </th>
-                      <th>Symbol</th>
-                    </tr>
-                  )}
+                  {searching === true && (<tr><th><center>Select</center></th><th>Symbol</th></tr>)}
                 </thead>
                 <tbody>
                   {searching === false &&
-                    stocks &&
-                    stocks.map((_, index) => (
+                    tickers &&
+                    Object.entries(tickers).map(([ticker, name], index) => (
                       <tr key={index}>
                         <td>
                           <center>
                             <input
                               type="checkbox"
                               disabled={adding_loading}
-                              checked={checkedItems.includes(stocks[index])}
+                              checked={checkedItems.includes(ticker)}
                               onChange={() =>
-                                handleCheckboxChange(stocks[index])
+                                handleCheckboxChange(ticker, name)
                               }
                             />
                           </center>
                         </td>
                         <td
                           className={style.table_symbol}
-                          onClick={() => gather_stock_data([stocks[index]])}
+                          onClick={() => gather_ticker_data([ticker, name])}
                         >
-                          {stocks[index]}
+                          {name}
                         </td>
-                        {stocks_table_data && (
-                          <td>{stocks_table_data.PRICE[index].toFixed(2)}</td>
+                        {tickers_table_data && (
+                          <td>{tickers_table_data.PRICE[index].toFixed(2)}</td>
                         )}
-                        {stocks_table_data && (
+                        {tickers_table_data && (
                           <td
                             id={index.toString() + "price_column"}
                             className={getClassByValue(
-                              stocks_table_data.CHANGE[index],
+                              tickers_table_data.CHANGE[index],
                               index,
                             )}
                           >
-                            {stocks_table_data.CHANGE[index].toFixed(2)}
+                            {tickers_table_data.CHANGE[index].toFixed(2)}
                           </td>
                         )}
-                        {stocks_table_data && (
+                        {tickers_table_data && (
                           <td
                             className={getClassByValue(
-                              stocks_table_data.PCHANGE[index],
+                              tickers_table_data.PCHANGE[index],
                             )}
                           >
-                            {stocks_table_data.PCHANGE[index].toFixed(2)} %
+                            {tickers_table_data.PCHANGE[index].toFixed(2)} %
                           </td>
                         )}
-                        {stocks_table_data && (
+                        {tickers_table_data && (
                           <td>
                             <div className={style.table_range}>
                               <div className={style.table_range_length}>
                                 <div
                                   className={style.table_range_fill}
                                   style={{
-                                    width: `${((stocks_table_data.PRICE[index] - stocks_table_data.LOW[index]) / (stocks_table_data.HIGH[index] - stocks_table_data.LOW[index])) * 100}%`,
+                                    width: `${((tickers_table_data.PRICE[index] - tickers_table_data.LOW[index]) / (tickers_table_data.HIGH[index] - tickers_table_data.LOW[index])) * 100}%`,
                                   }}
                                 ></div>
                                 <div className={style.table_range_label}>
                                   <div>
-                                    {stocks_table_data.LOW[index].toFixed(2)}
+                                    {tickers_table_data.LOW[index].toFixed(2)}
                                   </div>
                                   <div>
-                                    {stocks_table_data.HIGH[index].toFixed(2)}
+                                    {tickers_table_data.HIGH[index].toFixed(2)}
                                   </div>
                                 </div>
                               </div>
@@ -534,24 +558,24 @@ const Home = () => {
                       </tr>
                     ))}
                   {searching === true &&
-                    searchedStocks &&
-                    searchedStocks.map((stock, index) => (
+                    searched_tickers &&
+                    Object.entries(searched_tickers).map(([ticker, name], index) => (
                       <tr key={index}>
                         <td>
                           <center>
                             <input
                               type="checkbox"
                               disabled={adding_loading}
-                              checked={checkedItems.includes(stock)}
-                              onChange={() => handleCheckboxChange(stock)}
+                              checked={checkedItems.includes(ticker)}
+                              onChange={() => handleCheckboxChange(ticker, name)}
                             />
                           </center>
                         </td>
                         <td
                           className={style.table_symbol}
-                          onClick={() => gather_stock_data([stock])}
+                          onClick={() => gather_ticker_data([ticker, name])}
                         >
-                          {stock}
+                          {name}
                         </td>
                       </tr>
                     ))}
@@ -560,7 +584,7 @@ const Home = () => {
             </div>
           </div>
           <div className={style.home_chart}>
-            {selectedStock && <h2 style={{ margin: "0" }}>{selectedStock}</h2>}
+            {selected_ticker && <h2 style={{ margin: "0" }}>{selected_ticker[1]}</h2>}
             <div className={style.home_chart_price}>
               <Line data={chartData} options={chartOptions} />
             </div>
@@ -578,7 +602,7 @@ const Home = () => {
                       value={minimum_weight}
                       min="0.00"
                       onChange={(e) => setMinimumWeight(e.target.value)}
-                      max={1 - current_minimum_sums.current}
+                      max={1 - cms.current}
                       placeholder="0.00"
                       required={true}
                     />
@@ -604,9 +628,9 @@ const Home = () => {
         </div>
         <div className={style.controller_buttons}>
           <button className={style.home_chart_next}style={{ width: "100px" }}onClick={() => setShowSettings(true)}>Settings</button>
-          <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => setShowBucket(true)} >View Buckets</button>
-          <button className={style.home_chart_next} style={{ width: "150px" }} onClick={() => {localStorage.removeItem("stocks_list");window.location.reload();}}>Reset Stocks List</button>
-          <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => {localStorage.setItem("equity_bucket", JSON.stringify([]));window.location.reload();}}>Reset Bucket</button>
+          <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => setShowBucket(true)} >View Bucket</button>
+          <button className={style.home_chart_next} style={{ width: "150px" }} onClick={() => {localStorage.removeItem(`${current_selection}_list`);window.location.reload();}}>Reset Tickers List</button>
+          <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => {localStorage.setItem(`${current_selection}_bucket`, JSON.stringify([]));window.location.reload();}}>Reset Bucket</button>
           <button className={style.home_chart_next} onClick={loadResults}>Next</button>
         </div>
       </div>

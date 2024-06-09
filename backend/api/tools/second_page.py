@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-import data, basket
+from . import data
+from . import bucket as basket
 
 def calc_beta(portfolio_return: pd.core.series.Series, market_return: pd.core.series.Series):
     
