@@ -96,16 +96,13 @@ const Home = () => {
       if (!localStorage.getItem("crypto_bucket")) {
         localStorage.setItem("crypto_bucket", JSON.stringify([]));
       }
-      let bucket = JSON.parse(localStorage.getItem(`${current_selection}_bucket`));
-      if (bucket.length === 0) {
-        cms.current = 0;
-      } else {
-        for (let i = 0; i < bucket.length; i++) {
-          cms.current += bucket[i][1];
-        }
-      }
     }
-  }, []);
+    let bucket = JSON.parse(localStorage.getItem(`${current_selection}_bucket`));
+    cms.current = 0;
+    for (let i = 0; i < bucket.length; i++) {
+        cms.current += bucket[i][1];
+    }
+  }, [currentSelection]);
 
   const gather_ticker_data = async (ticker) => {
     setSelectedTicker(ticker);
