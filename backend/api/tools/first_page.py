@@ -21,7 +21,7 @@ import numpy as np
 def initialize(stock_list, period):
 
     prices = data.fetch_data(stock_list, period=period)
-
+    prices = prices[stock_list]
     symbols = np.array(prices.columns)
     current_prices = np.array(prices.iloc[-1,:])
     high_52Week = np.array(prices.max())
