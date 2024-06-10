@@ -13,5 +13,6 @@ urlpatterns = [
     path('search_commodities/', search_commodities, name='search_commodities'),
     path('search_reit/', search_REIT, name='search_REIT'),
     path('search_equity/', search_equity, name='search_equity'),
+    path('data_analysis/', analyze_data, name = 'data_analysis'),
 
 ]

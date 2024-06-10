@@ -26,7 +26,7 @@ ChartJS.register(
 );
 
 const Home = () => {
-    let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data } = useContext(AuthContext);
+    let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data, analyze_data } = useContext(AuthContext);
     let should_get_tickers = useRef(true);
     let should_create_bucket = useRef(true);
     let cms = useRef(0);
@@ -58,15 +58,15 @@ const Home = () => {
     let [cbmscr, setCbmscr] = useState(0);
     let cabms = useRef([0, 0, 0, 0, 0]);
     let [equity_bucket_min_weight, setEquityBucketMinWeight] = useState(null);
-    let [equity_bucket_max_weight, setEquityBucketMaxWeight] = useState(1);
+    let [equity_bucket_max_weight, setEquityBucketMaxWeight] = useState(100);
     let [commodities_bucket_min_weight, setCommoditiesBucketMinWeight] = useState(null);
-    let [commodities_bucket_max_weight, setCommoditiesBucketMaxWeight] = useState(1);
+    let [commodities_bucket_max_weight, setCommoditiesBucketMaxWeight] = useState(100);
     let [t_notes_bucket_min_weight, setT_notesBucketMinWeight] = useState(null);
-    let [t_notes_bucket_max_weight, setT_notesBucketMaxWeight] = useState(1);
+    let [t_notes_bucket_max_weight, setT_notesBucketMaxWeight] = useState(100);
     let [reit_bucket_min_weight, setReitBucketMinWeight] = useState(null);
-    let [reit_bucket_max_weight, setReitBucketMaxWeight] = useState(1);
+    let [reit_bucket_max_weight, setReitBucketMaxWeight] = useState(100);
     let [crypto_bucket_min_weight, setCryptoBucketMinWeight] = useState(null);
-    let [crypto_bucket_max_weight, setCryptoBucketMaxWeight] = useState(1);
+    let [crypto_bucket_max_weight, setCryptoBucketMaxWeight] = useState(100);
     const navigate = useNavigate();
 
     var current_selection = "equity";
@@ -222,7 +222,37 @@ const Home = () => {
 
     let loadResults = (e) => {
         e.preventDefault();
-        navigate("/results");
+        // navigate("/results");
+        let start_date = document.getElementById("start_date").value;
+        let end_date = document.getElementById("end_date").value;
+        let number_of_simulations = document.getElementById("number_of_simulations").value;
+        let initial_amount = document.getElementById("initial_amount").value;
+        let benchmark_ticker = document.getElementById("benchmark_ticker").value;
+        let market_ticker = document.getElementById("market_ticker").value;
+        let equity_bucket = JSON.parse(localStorage.getItem("equity_bucket"));
+        let commodities_bucket = JSON.parse(localStorage.getItem("commodities_bucket"));
+        let t_notes_bucket = JSON.parse(localStorage.getItem("t_notes_bucket"));
+        let reit_bucket = JSON.parse(localStorage.getItem("reit_bucket"));
+        let crypto_bucket = JSON.parse(localStorage.getItem("crypto_bucket"));
+        let buckets_min_weights = [equity_bucket_min_weight, commodities_bucket_min_weight, t_notes_bucket_min_weight, reit_bucket_min_weight, crypto_bucket_min_weight];
+        let buckets_max_weights = [equity_bucket_max_weight, commodities_bucket_max_weight, t_notes_bucket_max_weight, reit_bucket_max_weight, crypto_bucket_max_weight];
+        let data = {
+            start_date: start_date,
+            end_date: end_date,
+            number_of_simulations: number_of_simulations,
+            initial_amount: initial_amount,
+            benchmark_ticker: benchmark_ticker,
+            market_ticker: market_ticker,
+            equity_bucket: equity_bucket,
+            commodities_bucket: commodities_bucket,
+            t_notes_bucket: t_notes_bucket,
+            reit_bucket: reit_bucket,
+            crypto_bucket: crypto_bucket,
+            buckets_min_weights: buckets_min_weights,
+            buckets_max_weights: buckets_max_weights
+        }
+        console.log(data);
+        analyze_data(data);
     };
     const chartData = {
         labels: ["January", "February", "March", "April", "May", "June"],
@@ -458,7 +488,19 @@ const Home = () => {
                             </div>
                             <div className={style.analysis_options_input}>
                                 <label style={{ fontWeight: "bold", fontSize: "14px" }}>Initial Amount : </label>
-                                <input type="number" id="number_of_simulations" placeholder="10000" />
+                                <input type="number" id="initial_amount" placeholder="10000" />
+                            </div>
+                            <div className={style.analysis_options_input}>
+                                <label style={{ fontWeight: "bold", fontSize: "14px" }}>Benchmark Ticker : </label>
+                                <select defaultValue="^NSEI" id="benchmark_ticker" required={true}>
+                                    <option value="^NSEI">^NSEI</option>
+                                </select>
+                            </div>
+                            <div className={style.analysis_options_input}>
+                                <label style={{ fontWeight: "bold", fontSize: "14px" }}>Market Ticker : </label>
+                                <select defaultValue="^NSEI" id="market_ticker" required={true}>
+                                    <option value="^NSEI">^NSEI</option>
+                                </select>
                             </div>
                             {equity_bucket_min_weight && (
                                 <div className={style.analysis_options_input}>

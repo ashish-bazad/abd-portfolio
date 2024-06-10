@@ -38,6 +38,17 @@ export const AuthProvider = ({children}) => {
         const data = await response.json();
         return data;
     }
+    const analyze_data = async(request_data) => {
+        const response = await(fetch(`http://127.0.0.1:8000/api/data_analysis/`, {
+            method:'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(request_data),
+        }))
+        const data = await response.json()
+        console.log(data);
+    }
 
     let contextData = {
         get_tickers_equity,
@@ -46,6 +57,7 @@ export const AuthProvider = ({children}) => {
         get_tickers_t_notes,
         get_tickers_reit,
         get_tickers_data,
+        analyze_data,
 
     }
     return (
