@@ -45,17 +45,20 @@ def fetch_data(stock_list, start_date=None, end_date=None, period=None, dividend
             historical_data = tickers.history(period=period)
         
         if dividend:    
-            hist_price = historical_data.Close     
+            hist_price = historical_data.Close
+            hist_price.index = hist_price.index.tz_localize(None)     
             hist_price = hist_price.bfill(axis=0)
             hist_price = hist_price.ffill(axis=0)
 
             hist_dividend = historical_data.Dividends
+            hist_dividend.index = hist_dividend.index.tz_localize(None)
             hist_dividend = hist_dividend.bfill(axis=0)
             hist_dividend = hist_dividend.ffill(axis=0)
 
             return pd.DataFrame(hist_price).rename(columns={'Close':stock_list[0]}).dropna(), pd.DataFrame(hist_dividend).rename(columns={'Close':stock_list[0]}).dropna()
         else:
-            hist_price = historical_data.Close 
+            hist_price = historical_data.Close
+            hist_price.index = hist_price.index.tz_localize(None) 
             hist_price = hist_price.bfill(axis=0)
             hist_price = hist_price.ffill(axis=0)
 

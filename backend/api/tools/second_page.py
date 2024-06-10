@@ -1,21 +1,10 @@
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-from . import data
-from . import bucket as basket
+from . import data, bucket as basket
 
 def calc_beta(portfolio_return: pd.core.series.Series, market_return: pd.core.series.Series):
-    # Localize to UTC if naive, then convert to UTC
-    if portfolio_return.index.tz is None:
-        portfolio_return.index = portfolio_return.index.tz_localize('UTC')
-    else:
-        portfolio_return.index = portfolio_return.index.tz_convert('UTC')
     
-    if market_return.index.tz is None:
-        market_return.index = market_return.index.tz_localize('UTC')
-    else:
-        market_return.index = market_return.index.tz_convert('UTC')
-
     # Find the intersection of indices
     index = np.intersect1d(market_return.index, portfolio_return.index)
     
@@ -145,6 +134,8 @@ def initialize(stocks_list, start_date, end_date, benchmark_ticker, market_ticke
     sortino_ratio = (annual_portfolio_returns[index] - risk_free_rate) / sortino_risk
 
     ## TREYNOR
+    print(portfolio_log_returns)
+    print(market_log_returns.iloc[:,0])
     beta = calc_beta(portfolio_log_returns, market_log_returns.iloc[:,0])
     treynor_ratio = (annual_portfolio_returns[index] - risk_free_rate) / beta
 

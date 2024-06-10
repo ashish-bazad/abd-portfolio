@@ -119,8 +119,8 @@ def analyze_data(request):
     tickers_list = []
     portfolio_minimum_weights = []
     portfolio_maximum_weights = []
-    buckets_minimum_weights = [i for i in buckets_min_weights if i != None]
-    buckets_maximum_weights = [buckets_max_weights[i] for i in range(len(buckets_max_weights)) if buckets_min_weights[i] != None]
+    buckets_minimum_weights = [i / 100 for i in buckets_min_weights if i != None]
+    buckets_maximum_weights = [buckets_max_weights[i] / 100 for i in range(len(buckets_max_weights)) if buckets_min_weights[i] != None]
     if len(equity_bucket) > 0:
         tmp_min = []
         tmp_max = []
@@ -170,7 +170,19 @@ def analyze_data(request):
             tmp_max.append(i[2] / 100)
         portfolio_minimum_weights.append(tmp_min)
         portfolio_maximum_weights.append(tmp_max)
-    
+
+    # print all the above variables with their labels like print("start_data:", start_date)
+    # print("start_date=", type(start_date))
+    # print("end_date=", type(end_date))
+    # print("benchmark_ticker=", type(benchmark_ticker))
+    # print("market_ticker=", type(market_ticker))
+    # print("initial_amount=", type(initial_amount))
+    # print("number_of_simulations=", type(number_of_simulations))
+    # print("portfolio_minimum_weights=", type(portfolio_minimum_weights[0][0]))
+    # print("portfolio_maximum_weights=", type(portfolio_maximum_weights[0][0]))
+    # print("buckets_minimum_weights=", type(buckets_minimum_weights[0]))
+    # print("buckets_maximum_weights=", type(buckets_maximum_weights[0]))
+    # print("tickers_list=", type(tickers_list[0]))
+
     result_dict = second_page.initialize(tickers_list, start_date, end_date, benchmark_ticker, market_ticker, initial_amount, number_of_simulations, portfolio_minimum_weights, portfolio_maximum_weights, buckets_minimum_weights, buckets_maximum_weights)
-    print(result_dict)
-    return Response({"results":"successfull"}, status=status.HTTP_200_OK)
+    return Response({"results":result_dict}, status=status.HTTP_200_OK)
