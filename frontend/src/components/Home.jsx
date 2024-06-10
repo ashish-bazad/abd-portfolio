@@ -67,6 +67,7 @@ const Home = () => {
     let [reit_bucket_max_weight, setReitBucketMaxWeight] = useState(100);
     let [crypto_bucket_min_weight, setCryptoBucketMinWeight] = useState(null);
     let [crypto_bucket_max_weight, setCryptoBucketMaxWeight] = useState(100);
+    let [analysing, setAnalysing] = useState(false);
     const navigate = useNavigate();
 
     var current_selection = "equity";
@@ -219,10 +220,11 @@ const Home = () => {
         get_tickers_table_data();
         }
     }, [currentSelection]);
-
-    let loadResults = (e) => {
+    
+    let loadResults = async (e) => {
         e.preventDefault();
         // navigate("/results");
+        setAnalysing(true);
         let start_date = document.getElementById("start_date").value;
         let end_date = document.getElementById("end_date").value;
         let number_of_simulations = document.getElementById("number_of_simulations").value;
@@ -251,8 +253,11 @@ const Home = () => {
             buckets_min_weights: buckets_min_weights,
             buckets_max_weights: buckets_max_weights
         }
-        console.log(data);
-        analyze_data(data);
+        const response = await analyze_data(data);
+        if(response) {
+            navigate("/results");
+        }
+        setAnalysing(false);
     };
     const chartData = {
         labels: ["January", "February", "March", "April", "May", "June"],
@@ -465,7 +470,14 @@ const Home = () => {
 
   return (
     <div className={style.home_container}>
-        {analysis_options && (
+      {analysing && (
+        <div className={style.bucket_container} style={{zIndex:'100'}}>
+          <div className={style.loading}>
+            <h1>Processing...</h1>
+          </div>
+        </div>
+      )}
+      {analysis_options && (
             <div className={style.bucket_container} onClick={() => setAnalysisOptions(false)}>
                 <div className={style.bucket} onClick={(e) => e.stopPropagation()}>
                     <div className={style.settings_header}>

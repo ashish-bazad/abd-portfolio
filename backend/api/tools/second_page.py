@@ -134,8 +134,6 @@ def initialize(stocks_list, start_date, end_date, benchmark_ticker, market_ticke
     sortino_ratio = (annual_portfolio_returns[index] - risk_free_rate) / sortino_risk
 
     ## TREYNOR
-    print(portfolio_log_returns)
-    print(market_log_returns.iloc[:,0])
     beta = calc_beta(portfolio_log_returns, market_log_returns.iloc[:,0])
     treynor_ratio = (annual_portfolio_returns[index] - risk_free_rate) / beta
 
@@ -199,25 +197,25 @@ def initialize(stocks_list, start_date, end_date, benchmark_ticker, market_ticke
     correlation_matrix = log_returns.corr()
 
     result_dict = {}
-    result_dict['capital_gain_%'] = capital_gain
-    result_dict['dividend_yield_%'] = dividend_yield
-    result_dict['market_gain_%'] = market_gain
+    result_dict['p_capital_gain'] = capital_gain
+    result_dict['p_dividend_yield'] = dividend_yield
+    result_dict['p_market_gain'] = market_gain
     result_dict['optimised_weights'] = optimised_weights
-    result_dict['portfolio_returns_%'] = annual_portfolio_returns
+    result_dict['p_portfolio_returns'] = annual_portfolio_returns
     result_dict['portfolio_std'] = portfolio_risks[index]
     result_dict['portfolio_beta'] = beta
     result_dict['sharpe'] = sharpe_ratio
     result_dict['treynor'] = treynor_ratio
     result_dict['sortino'] = sortino_ratio
     result_dict['jenson'] = jenson_alpha
-    result_dict['var'] = {'90%':var_at_90, '95%':var_at_95, '99%':var_at_99}
-    result_dict['cvar'] = {'90%':cvar_at_90, '95%':cvar_at_95, '99%':cvar_at_99}
-    result_dict['var_monte_carlo'] = {'90%':sim_var_at_90, '95%':sim_var_at_95, '99%':sim_var_at_99}
+    result_dict['var'] = {'ninety_p':var_at_90, 'ninety_five_p':var_at_95, 'ninety_nine_p':var_at_99}
+    result_dict['cvar'] = {'ninety_p':cvar_at_90, 'ninety_five_p':cvar_at_95, 'ninety_nine_p':cvar_at_99}
+    result_dict['var_monte_carlo'] = {'ninety_p':sim_var_at_90, 'ninety_five_p':sim_var_at_95, 'ninety_nine_p':sim_var_at_99}
     result_dict['portfolio_value'] = portfolio_value
     result_dict['portfolio_dividend'] = portfolio_dividend
     result_dict['var_monte_carlo_simulated_returns'] = simulated_returns
-    result_dict['benchmark_returns_%'] = benchmark_gain
-    result_dict['tracking_error_%'] = tracking_error_percent
+    result_dict['p_benchmark_returns'] = benchmark_gain
+    result_dict['p_tracking_error'] = tracking_error_percent
     result_dict['information_ratio'] = information_ratio
     result_dict['benchmark_value'] = benchmark_value
     result_dict['correlation_matrix'] = correlation_matrix

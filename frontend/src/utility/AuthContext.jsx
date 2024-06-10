@@ -46,8 +46,13 @@ export const AuthProvider = ({children}) => {
             },
             body: JSON.stringify(request_data),
         }))
-        const data = await response.json()
-        console.log(data);
+        if(response.status === 200) {
+            const data = await response.json()
+            localStorage.setItem('results', JSON.stringify(data.results));
+            return true;
+        } else {
+            return false
+        }
     }
 
     let contextData = {

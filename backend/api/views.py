@@ -84,19 +84,8 @@ def get_tickers_data(request):
     table_data, price_data, volatility_data = {}, {}, {}
     try:
         table_data, price_data, volatility_data = first_page.initialize(tickers_list,  period=period)
-        # print(table_data)
-        # print(price_data)
-        # print(volatility_data)
     except Exception as e:
         print(e)
-    # dft, dfp, dfv = pd.DataFrame(table_data), pd.DataFrame(price_data), pd.DataFrame(volatility_data)
-    # dft.fillna(0, inplace=True)
-    # dfp.fillna(0, inplace=True)
-    # dfv.fillna(0, inplace=True)
-    # dft.replace([np.inf, -np.inf], np.nan, inplace=True)
-    # dfp.replace([np.inf, -np.inf], np.nan, inplace=True)
-    # dfv.replace([np.inf, -np.inf], np.nan, inplace=True)
-    # table_data, price_data, volatility_data = dft.to_dict(orient='records'), dfp.to_dict(orient='records'), dfv.to_dict(orient='records')
     return Response({"table_data": table_data, "price_data": price_data, "volatility_data": volatility_data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
@@ -171,18 +160,6 @@ def analyze_data(request):
         portfolio_minimum_weights.append(tmp_min)
         portfolio_maximum_weights.append(tmp_max)
 
-    # print all the above variables with their labels like print("start_data:", start_date)
-    # print("start_date=", type(start_date))
-    # print("end_date=", type(end_date))
-    # print("benchmark_ticker=", type(benchmark_ticker))
-    # print("market_ticker=", type(market_ticker))
-    # print("initial_amount=", type(initial_amount))
-    # print("number_of_simulations=", type(number_of_simulations))
-    # print("portfolio_minimum_weights=", type(portfolio_minimum_weights[0][0]))
-    # print("portfolio_maximum_weights=", type(portfolio_maximum_weights[0][0]))
-    # print("buckets_minimum_weights=", type(buckets_minimum_weights[0]))
-    # print("buckets_maximum_weights=", type(buckets_maximum_weights[0]))
-    # print("tickers_list=", type(tickers_list[0]))
-
     result_dict = second_page.initialize(tickers_list, start_date, end_date, benchmark_ticker, market_ticker, initial_amount, number_of_simulations, portfolio_minimum_weights, portfolio_maximum_weights, buckets_minimum_weights, buckets_maximum_weights)
-    return Response({"results":result_dict}, status=status.HTTP_200_OK)
+    
+    return Response({"results": result_dict}, status=status.HTTP_200_OK)

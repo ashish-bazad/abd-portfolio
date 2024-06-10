@@ -394,3 +394,10 @@ form button {
     align-items: center;
     width: 100%;
 }
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
