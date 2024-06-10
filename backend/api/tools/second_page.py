@@ -5,7 +5,17 @@ from . import data
 from . import bucket as basket
 
 def calc_beta(portfolio_return: pd.core.series.Series, market_return: pd.core.series.Series):
+    # Localize to UTC if naive, then convert to UTC
+    if portfolio_return.index.tz is None:
+        portfolio_return.index = portfolio_return.index.tz_localize('UTC')
+    else:
+        portfolio_return.index = portfolio_return.index.tz_convert('UTC')
     
+    if market_return.index.tz is None:
+        market_return.index = market_return.index.tz_localize('UTC')
+    else:
+        market_return.index = market_return.index.tz_convert('UTC')
+
     # Find the intersection of indices
     index = np.intersect1d(market_return.index, portfolio_return.index)
     

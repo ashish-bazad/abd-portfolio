@@ -126,8 +126,8 @@ def analyze_data(request):
         tmp_max = []
         for i in equity_bucket:
             tickers_list.append(i[0][0])
-            tmp_min.append(i[1])
-            tmp_max.append(i[2])
+            tmp_min.append(i[1] / 100)
+            tmp_max.append(i[2] / 100)
         portfolio_minimum_weights.append(tmp_min)
         portfolio_maximum_weights.append(tmp_max)
 
@@ -136,8 +136,8 @@ def analyze_data(request):
         tmp_max = []
         for i in commodities_bucket:
             tickers_list.append(i[0][0])
-            tmp_min.append(i[1])
-            tmp_max.append(i[2])
+            tmp_min.append(i[1] / 100)
+            tmp_max.append(i[2] / 100)
         portfolio_minimum_weights.append(tmp_min)
         portfolio_maximum_weights.append(tmp_max)
 
@@ -146,8 +146,8 @@ def analyze_data(request):
         tmp_max = []
         for i in reit_bucket:
             tickers_list.append(i[0][0])
-            tmp_min.append(i[1])
-            tmp_max.append(i[2])
+            tmp_min.append(i[1] / 100)
+            tmp_max.append(i[2] / 100)
         portfolio_minimum_weights.append(tmp_min)
         portfolio_maximum_weights.append(tmp_max)
 
@@ -156,8 +156,8 @@ def analyze_data(request):
         tmp_max = []
         for i in t_notes_bucket:
             tickers_list.append(i[0][0])
-            tmp_min.append(i[1])
-            tmp_max.append(i[2])
+            tmp_min.append(i[1] / 100)
+            tmp_max.append(i[2] / 100)
         portfolio_minimum_weights.append(tmp_min)
         portfolio_maximum_weights.append(tmp_max)
 
@@ -166,11 +166,11 @@ def analyze_data(request):
         tmp_max = []
         for i in crypto_bucket:
             tickers_list.append(i[0][0])
-            tmp_min.append(i[1])
-            tmp_max.append(i[2])
+            tmp_min.append(i[1] / 100)
+            tmp_max.append(i[2] / 100)
         portfolio_minimum_weights.append(tmp_min)
         portfolio_maximum_weights.append(tmp_max)
     
     result_dict = second_page.initialize(tickers_list, start_date, end_date, benchmark_ticker, market_ticker, initial_amount, number_of_simulations, portfolio_minimum_weights, portfolio_maximum_weights, buckets_minimum_weights, buckets_maximum_weights)
-    
-    return Response({"results":result_dict}, status=status.HTTP_200_OK)
+    print(result_dict)
+    return Response({"results":"successfull"}, status=status.HTTP_200_OK)

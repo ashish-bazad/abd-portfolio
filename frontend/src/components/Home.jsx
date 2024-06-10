@@ -901,9 +901,9 @@ const Home = () => {
         </div>
         <div className={style.controller_buttons}>
           <button className={style.home_chart_next} style={{ width: "100px" }} onClick={() => setShowSettings(true)}>Settings</button>
-          <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => setShowBucket(true)} >View Bucket</button>
           <button className={style.home_chart_next} style={{ width: "150px" }} onClick={() => {localStorage.removeItem(`${current_selection}_list`);window.location.reload();}}>Reset Tickers List</button>
           <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => {localStorage.setItem(`${current_selection}_bucket`, JSON.stringify([]));window.location.reload();}}>Reset Bucket</button>
+          <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => setShowBucket(true)} >View Bucket</button>
           <button className={style.home_chart_next} onClick={() => setAnalysisOptions(true)}>Next</button>
         </div>
       </div>
