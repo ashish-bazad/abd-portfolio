@@ -26,310 +26,551 @@ ChartJS.register(
 );
 
 const Home = () => {
-  let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data } = useContext(AuthContext);
-  let should_get_tickers = useRef(true);
-  let should_create_bucket = useRef(true);
-  let cms = useRef(0);
-  let [tickers, setTickers] = useState({});
-  let [tickers_table_data, setTickersTableData] = useState(null);
-  let [selected_ticker, setSelectedTicker] = useState(null);
-  if(!localStorage.getItem('selection')) {
-    localStorage.setItem('selection', 0);
-  }
-  let [currentSelection, setCurrentSelection] = useState(parseInt(localStorage.getItem('selection')));
-  let [searchText, setSearchText] = useState("");
-  let [searching, setSearching] = useState(false);
-  let [searched_tickers, setSearchedTickers] = useState({});
-  let [checkedItems, setCheckedItems] = useState([]);
-  let [adding_loading, setAdding_loading] = useState(false);
-  let [minimum_weight, setMinimumWeight] = useState(0);
-  let [maximum_weight, setMaximumWeight] = useState(1);
-  let [show_bucket, setShowBucket] = useState(false);
-  let [tmpReload, setTmpReload] = useState(false);
-  let [showSettings, setShowSettings] = useState(false);
-  let period = localStorage.getItem("period")? localStorage.getItem("period"): "1y";
-  let [tperiod, setTperiod] = useState(period);
-  const navigate = useNavigate();
-
-  var current_selection = "equity";
-  switch (currentSelection) {
-    case 0:
-      current_selection = "equity";
-      break;
-    case 1:
-      current_selection = "commodities";
-      break;
-    case 2:
-      current_selection = "t_notes";
-      break;
-    case 3:
-      current_selection = "reit";
-      break;
-    default:
-      current_selection = "crypto";
-  }
-
-  useEffect(() => {
-    setTperiod(period);
-  }, [period]);
-
-  useEffect(() => {
-    if (should_create_bucket.current) {
-      should_create_bucket.current = false;
-      // equity bucket
-      if (!localStorage.getItem("equity_bucket")) {
-        localStorage.setItem("equity_bucket", JSON.stringify([]));
-      }
-      // commodity bucket
-      if (!localStorage.getItem("commodities_bucket")) {
-        localStorage.setItem("commodities_bucket", JSON.stringify([]));
-      }
-      // treasury notes bucket
-      if (!localStorage.getItem("t_notes_bucket")) {
-        localStorage.setItem("t_notes_bucket", JSON.stringify([]));
-      }
-      // reits bucket
-      if (!localStorage.getItem("reits_bucket")) {
-        localStorage.setItem("reit_bucket", JSON.stringify([]));
-      }
-      // crypto bucket
-      if (!localStorage.getItem("crypto_bucket")) {
-        localStorage.setItem("crypto_bucket", JSON.stringify([]));
-      }
+    let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data } = useContext(AuthContext);
+    let should_get_tickers = useRef(true);
+    let should_create_bucket = useRef(true);
+    let cms = useRef(0);
+    let [tickers, setTickers] = useState({});
+    let [tickers_table_data, setTickersTableData] = useState(null);
+    let [selected_ticker, setSelectedTicker] = useState(null);
+    if(!localStorage.getItem('selection')) {
+        localStorage.setItem('selection', 0);
     }
-    let bucket = JSON.parse(localStorage.getItem(`${current_selection}_bucket`));
-    cms.current = 0;
-    for (let i = 0; i < bucket.length; i++) {
-        cms.current += bucket[i][1];
+    let [currentSelection, setCurrentSelection] = useState(parseInt(localStorage.getItem('selection')));
+    let [searchText, setSearchText] = useState("");
+    let [searching, setSearching] = useState(false);
+    let [searched_tickers, setSearchedTickers] = useState({});
+    let [checkedItems, setCheckedItems] = useState([]);
+    let [adding_loading, setAdding_loading] = useState(false);
+    let [minimum_weight, setMinimumWeight] = useState(0);
+    let [maximum_weight, setMaximumWeight] = useState(100);
+    let [show_bucket, setShowBucket] = useState(false);
+    let [analysis_options, setAnalysisOptions] = useState(false);
+    let [tmpReload, setTmpReload] = useState(false);
+    let [showSettings, setShowSettings] = useState(false);
+    let period = localStorage.getItem("period")? localStorage.getItem("period"): "1y";
+    let [tperiod, setTperiod] = useState(period);
+    let cbms = useRef(0)
+    let [cbmse, setCbmse] = useState(0);
+    let [cbmsc, setCbmsc] = useState(0);
+    let [cbmst, setCbmst] = useState(0);
+    let [cbmsr, setCbmsr] = useState(0);
+    let [cbmscr, setCbmscr] = useState(0);
+    let cabms = useRef([0, 0, 0, 0, 0]);
+    let [equity_bucket_min_weight, setEquityBucketMinWeight] = useState(null);
+    let [equity_bucket_max_weight, setEquityBucketMaxWeight] = useState(1);
+    let [commodities_bucket_min_weight, setCommoditiesBucketMinWeight] = useState(null);
+    let [commodities_bucket_max_weight, setCommoditiesBucketMaxWeight] = useState(1);
+    let [t_notes_bucket_min_weight, setT_notesBucketMinWeight] = useState(null);
+    let [t_notes_bucket_max_weight, setT_notesBucketMaxWeight] = useState(1);
+    let [reit_bucket_min_weight, setReitBucketMinWeight] = useState(null);
+    let [reit_bucket_max_weight, setReitBucketMaxWeight] = useState(1);
+    let [crypto_bucket_min_weight, setCryptoBucketMinWeight] = useState(null);
+    let [crypto_bucket_max_weight, setCryptoBucketMaxWeight] = useState(1);
+    const navigate = useNavigate();
+
+    var current_selection = "equity";
+    switch (currentSelection) {
+        case 0:
+        current_selection = "equity";
+        break;
+        case 1:
+        current_selection = "commodities";
+        break;
+        case 2:
+        current_selection = "t_notes";
+        break;
+        case 3:
+        current_selection = "reit";
+        break;
+        default:
+        current_selection = "crypto";
     }
-  }, [currentSelection]);
 
-  const gather_ticker_data = async (ticker) => {
-    setSelectedTicker(ticker);
-  };
-  const get_tickers_table_data = async () => {
-    setAdding_loading(true);
-    const currentTime = new Date();
-    const updateTime = new Date(currentTime);
-    updateTime.setHours(15, 30, 0, 0); // Set update time to 3:30 PM
+    useEffect(() => {
+        setTperiod(period);
+    }, [period]);
 
-    let lastUpdated = localStorage.getItem("tickers_list_last_updated");
-    lastUpdated = lastUpdated ? new Date(lastUpdated) : null;
+    useEffect(() => {
+        if (should_create_bucket.current) {
+        should_create_bucket.current = false;
+        // equity bucket
+        if (!localStorage.getItem("equity_bucket")) {
+            localStorage.setItem("equity_bucket", JSON.stringify([]));
+        }
+        // commodity bucket
+        if (!localStorage.getItem("commodities_bucket")) {
+            localStorage.setItem("commodities_bucket", JSON.stringify([]));
+        }
+        // treasury notes bucket
+        if (!localStorage.getItem("t_notes_bucket")) {
+            localStorage.setItem("t_notes_bucket", JSON.stringify([]));
+        }
+        // reits bucket
+        if (!localStorage.getItem("reit_bucket")) {
+            localStorage.setItem("reit_bucket", JSON.stringify([]));
+        }
+        // crypto bucket
+        if (!localStorage.getItem("crypto_bucket")) {
+            localStorage.setItem("crypto_bucket", JSON.stringify([]));
+        }
+        }
+        let bucket = JSON.parse(localStorage.getItem(`equity_bucket`));
+        cms.current = 0;
+        for (let i = 0; i < bucket.length; i++) {
+            cms.current += bucket[i][1];
+        }
+        bucket = JSON.parse(localStorage.getItem(`commodities_bucket`));
+        for (let i = 0; i < bucket.length; i++) {
+            cms.current += bucket[i][1];
+        }
+        bucket = JSON.parse(localStorage.getItem(`t_notes_bucket`));
+        for (let i = 0; i < bucket.length; i++) {
+            cms.current += bucket[i][1];
+        }
+        bucket = JSON.parse(localStorage.getItem(`reit_bucket`));
+        for (let i = 0; i < bucket.length; i++) {
+            cms.current += bucket[i][1];
+        }
+        bucket = JSON.parse(localStorage.getItem(`crypto_bucket`));
+        for (let i = 0; i < bucket.length; i++) {
+            cms.current += bucket[i][1];
+        }
+    }, [currentSelection]);
 
-    // Check if lastUpdated is from a different day or if it is before today's 3:30 PM
-    const needsUpdate =
-      !lastUpdated ||
-      !localStorage.getItem("equity_list") ||
-      !localStorage.getItem("equity_list_data") ||
-      !localStorage.getItem("commodities_list") ||
-      !localStorage.getItem("commodities_list_data") ||
-      !localStorage.getItem("t_notes_list") ||
-      !localStorage.getItem("t_notes_list_data") ||
-      !localStorage.getItem("reit_list") ||
-      !localStorage.getItem("reit_list_data") ||
-      // !localStorage.getItem("crypto_list") ||
-      // !localStorage.getItem("crypto_list_data") ||
-      lastUpdated.toDateString() !== currentTime.toDateString() ||
-      (currentTime >= updateTime && lastUpdated < updateTime);
-    if (needsUpdate) {
-      // Get the list of tickers
-      if (!localStorage.getItem("equity_list")) {
-        const data = await get_tickers_equity();
-        localStorage.setItem("equity_list", JSON.stringify(data.tickers));
-      }
-      if (!localStorage.getItem("commodities_list")) {
-        const data = await get_tickers_commodities();
-        localStorage.setItem("commodities_list", JSON.stringify(data.tickers));
-      }
-      if (!localStorage.getItem("t_notes_list")) {
-        const data = await get_tickers_t_notes();
-        localStorage.setItem("t_notes_list", JSON.stringify(data.tickers));
-      }
-      if (!localStorage.getItem("reit_list")) {
-        const data = await get_tickers_reit();
-        localStorage.setItem("reit_list", JSON.stringify(data.tickers));
-      }
-      // if (!localStorage.getItem("crypto_list")) {
-      //   const data = await get_tickers_crypto();
-      //   localStorage.setItem("crypto_list", JSON.stringify(data.tickers));
-      // }
-      setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
-      
-      // Get data for all the tickers
-      let prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("equity_list"))));
-      localStorage.setItem("equity_list_data", JSON.stringify(prices_list));
-      prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("commodities_list"))));
-      localStorage.setItem("commodities_list_data", JSON.stringify(prices_list));
-      prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("t_notes_list"))));
-      localStorage.setItem("t_notes_list_data", JSON.stringify(prices_list));
-      prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("reit_list"))));
-      localStorage.setItem("reit_list_data", JSON.stringify(prices_list));
-      // prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("crypto_list"))));
-      // localStorage.setItem("crypto_list_data", JSON.stringify(prices_list));
-      setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
-      setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
-      setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
+    const gather_ticker_data = async (ticker) => {
+        setSelectedTicker(ticker);
+    };
+    const get_tickers_table_data = async () => {
+        setAdding_loading(true);
+        const currentTime = new Date();
+        const updateTime = new Date(currentTime);
+        updateTime.setHours(15, 30, 0, 0); // Set update time to 3:30 PM
 
-      localStorage.setItem("tickers_list_last_updated", currentTime.toISOString());
-    } else {
-      setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
-      setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
-      setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
-      setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
-    }
-    setAdding_loading(false);
-  };
-  useEffect(() => {
-    if (should_get_tickers.current) {
-      should_get_tickers.current = false;
-      get_tickers_table_data();
-    }
-  }, [currentSelection]);
+        let lastUpdated = localStorage.getItem("tickers_list_last_updated");
+        lastUpdated = lastUpdated ? new Date(lastUpdated) : null;
 
-  let loadResults = () => {
-    navigate("/results");
-  };
-  const chartData = {
-    labels: ["January", "February", "March", "April", "May", "June"],
-    datasets: [
-      {
-        label: "Ticker Price",
-        data: [65, 59, 80, 81, 56, 55],
-        fill: false,
-        borderColor: "rgb(75, 192, 192)",
-        tension: 0,
-        pointRadius: 0,
-      },
-    ],
-  };
+        // Check if lastUpdated is from a different day or if it is before today's 3:30 PM
+        const needsUpdate =
+        !lastUpdated ||
+        !localStorage.getItem("equity_list") ||
+        !localStorage.getItem("equity_list_data") ||
+        !localStorage.getItem("commodities_list") ||
+        !localStorage.getItem("commodities_list_data") ||
+        !localStorage.getItem("t_notes_list") ||
+        !localStorage.getItem("t_notes_list_data") ||
+        !localStorage.getItem("reit_list") ||
+        !localStorage.getItem("reit_list_data") ||
+        // !localStorage.getItem("crypto_list") ||
+        // !localStorage.getItem("crypto_list_data") ||
+        lastUpdated.toDateString() !== currentTime.toDateString() ||
+        (currentTime >= updateTime && lastUpdated < updateTime);
+        if (needsUpdate) {
+        // Get the list of tickers
+        if (!localStorage.getItem("equity_list")) {
+            const data = await get_tickers_equity();
+            localStorage.setItem("equity_list", JSON.stringify(data.tickers));
+        }
+        if (!localStorage.getItem("commodities_list")) {
+            const data = await get_tickers_commodities();
+            localStorage.setItem("commodities_list", JSON.stringify(data.tickers));
+        }
+        if (!localStorage.getItem("t_notes_list")) {
+            const data = await get_tickers_t_notes();
+            localStorage.setItem("t_notes_list", JSON.stringify(data.tickers));
+        }
+        if (!localStorage.getItem("reit_list")) {
+            const data = await get_tickers_reit();
+            localStorage.setItem("reit_list", JSON.stringify(data.tickers));
+        }
+        // if (!localStorage.getItem("crypto_list")) {
+        //   const data = await get_tickers_crypto();
+        //   localStorage.setItem("crypto_list", JSON.stringify(data.tickers));
+        // }
+        setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
+        
+        // Get data for all the tickers
+        let prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("equity_list"))));
+        localStorage.setItem("equity_list_data", JSON.stringify(prices_list));
+        prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("commodities_list"))));
+        localStorage.setItem("commodities_list_data", JSON.stringify(prices_list));
+        prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("t_notes_list"))));
+        localStorage.setItem("t_notes_list_data", JSON.stringify(prices_list));
+        prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("reit_list"))));
+        localStorage.setItem("reit_list_data", JSON.stringify(prices_list));
+        // prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("crypto_list"))));
+        // localStorage.setItem("crypto_list_data", JSON.stringify(prices_list));
+        setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
+        setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
+        setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
 
-  const chartOptions = {
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-    scales: {
-      x: {
-        grid: {
-          display: false,
+        localStorage.setItem("tickers_list_last_updated", currentTime.toISOString());
+        } else {
+        setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
+        setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
+        setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
+        setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
+        }
+        setAdding_loading(false);
+    };
+    useEffect(() => {
+        if (should_get_tickers.current) {
+        should_get_tickers.current = false;
+        get_tickers_table_data();
+        }
+    }, [currentSelection]);
+
+    let loadResults = (e) => {
+        e.preventDefault();
+        navigate("/results");
+    };
+    const chartData = {
+        labels: ["January", "February", "March", "April", "May", "June"],
+        datasets: [
+        {
+            label: "Ticker Price",
+            data: [65, 59, 80, 81, 56, 55],
+            fill: false,
+            borderColor: "rgb(75, 192, 192)",
+            tension: 0,
+            pointRadius: 0,
         },
-      },
-      y: {
-        grid: {
-          display: false,
-        },
-      },
-    },
-    maintainAspectRatio: false,
-  };
-  const getClassByValue = (value) => {
-    if (parseFloat(value) > 0) {
-      return style.positive;
-    } else if (parseFloat(value) < 0) {
-      return style.negative;
-    } else {
-      return "";
-    }
-  };
-  const changeSelection = (item) => {
-    should_get_tickers.current = true;
-    localStorage.setItem("selection", parseInt(item.index));
-    setCurrentSelection(parseInt(item.index));
-  };
+        ],
+    };
 
-  const search_ticker = async (text) => {
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/search_${current_selection}/?search=${text}`,
-    );
-    const data = await response.json();
-    setSearchedTickers(data.tickers);
-  };
+    const chartOptions = {
+        plugins: {
+        legend: {
+            display: false,
+        },
+        },
+        scales: {
+        x: {
+            grid: {
+            display: false,
+            },
+        },
+        y: {
+            grid: {
+            display: false,
+            },
+        },
+        },
+        maintainAspectRatio: false,
+    };
+    const getClassByValue = (value) => {
+        if (parseFloat(value) > 0) {
+        return style.positive;
+        } else if (parseFloat(value) < 0) {
+        return style.negative;
+        } else {
+        return "";
+        }
+    };
+    const changeSelection = (item) => {
+        should_get_tickers.current = true;
+        localStorage.setItem("selection", parseInt(item.index));
+        setCurrentSelection(parseInt(item.index));
+    };
+
+    const search_ticker = async (text) => {
+        const response = await fetch(
+        `http://127.0.0.1:8000/api/search_${current_selection}/?search=${text}`,
+        );
+        const data = await response.json();
+        setSearchedTickers(data.tickers);
+    };
+
+    useEffect(() => {
+        if (searchText === "") {
+        setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
+        setSearching(false);
+        } else {
+        setSearching(true);
+        search_ticker(searchText.toUpperCase());
+        }
+    }, [searchText]);
+    const handleSearch = (e) => {
+        setSearchText(e.target.value);
+        const clearButton = document.getElementById("clear_button");
+        if (e.target.value !== "") {
+        clearButton.classList.remove(style.slideOut);
+        clearButton.classList.add(style.slideIn);
+        } else {
+        clearButton.classList.remove(style.slideIn);
+        clearButton.classList.add(style.slideOut);
+        }
+    };
+    const clearSearch = () => {
+        setSearchText("");
+        const clearButton = document.querySelector(`.${style.clear_button}`);
+        if (clearButton.classList.contains(style.slideIn)) {
+        clearButton.classList.remove(style.slideIn);
+        clearButton.classList.add(style.slideOut);
+        }
+    };
+    const handleCheckboxChange = async (ticker, name) => {
+        let tmp = [];
+        let tmp2 = JSON.parse(localStorage.getItem(`${current_selection}_list`));
+        setAdding_loading(true);
+        if (checkedItems.includes(ticker)) {
+        tmp = checkedItems.filter((item) => item !== ticker);
+        delete tmp2[ticker];
+        let tmp3 = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
+        delete tmp3.volatility_data[ticker];
+        delete tmp3.price_data[ticker];
+        let ind = tmp3.table_data.SYMBOLS.indexOf(ticker);
+        tmp3.table_data.SYMBOLS.splice(ind, 1);
+        tmp3.table_data.PRICE.splice(ind, 1);
+        tmp3.table_data.CHANGE.splice(ind, 1);
+        tmp3.table_data.PCHANGE.splice(ind, 1);
+        tmp3.table_data.LOW.splice(ind, 1);
+        tmp3.table_data.HIGH.splice(ind, 1);
+        localStorage.setItem(`${current_selection}_list_data`, JSON.stringify(tmp3));
+        localStorage.setItem(`${current_selection}_list`, JSON.stringify(tmp2));
+        setTickers(tmp2);
+        setTickersTableData(tmp3.table_data);
+        } else {
+        tmp = [...checkedItems, ticker];
+        tmp2[ticker] = name;
+        let tmp3 = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
+        const data = await get_tickers_data([ticker]);
+        tmp3.volatility_data[ticker] = data.volatility_data[ticker];
+        tmp3.price_data[ticker] = data.price_data[ticker];
+        tmp3.table_data.SYMBOLS.push(data.table_data.SYMBOLS[0]);
+        tmp3.table_data.PRICE.push(data.table_data.PRICE[0]);
+        tmp3.table_data.CHANGE.push(data.table_data.CHANGE[0]);
+        tmp3.table_data.PCHANGE.push(data.table_data.PCHANGE[0]);
+        tmp3.table_data.LOW.push(data.table_data.LOW[0]);
+        tmp3.table_data.HIGH.push(data.table_data.HIGH[0]);
+        localStorage.setItem(`${current_selection}_list_data`, JSON.stringify(tmp3));
+        localStorage.setItem(`${current_selection}_list`, JSON.stringify(tmp2));
+        setTickers(tmp2);
+        setTickersTableData(tmp3.table_data);
+        }
+        setAdding_loading(false);
+        setCheckedItems(tmp);
+    };
+
+    const handleAddToBucket = (e) => {
+        e.preventDefault();
+        let bucket = JSON.parse(localStorage.getItem(`${current_selection}_bucket`));
+        let tick = selected_ticker;
+        let max_weight = parseInt(maximum_weight),
+        min_weight = parseInt(minimum_weight);
+        bucket = [...bucket, [tick, min_weight, max_weight]];
+        localStorage.setItem(`${current_selection}_bucket`, JSON.stringify(bucket));
+        window.location.reload();
+    };
 
   useEffect(() => {
-    if (searchText === "") {
-      setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
-      setSearching(false);
-    } else {
-      setSearching(true);
-      search_ticker(searchText.toUpperCase());
+    if(analysis_options) {
+        cbms.current = 0;
+        cabms.current = [0, 0, 0, 0, 0];
+        let bucket = JSON.parse(localStorage.getItem(`equity_bucket`));
+        if(bucket) {
+            if(bucket.length !== 0) {
+                for(let i = 0; i < bucket.length; i++) {
+                    cabms.current[0] += bucket[i][1];
+                }
+                setEquityBucketMinWeight(cabms.current[0]);
+                cbms.current += cabms.current[0];
+            }
+        }
+        bucket = JSON.parse(localStorage.getItem(`commodities_bucket`));
+        if(bucket) {
+            if(bucket.length !== 0) {
+                for(let i = 0; i < bucket.length; i++) {
+                    cabms.current[1] += bucket[i][1];
+                }
+                setCommoditiesBucketMinWeight(cabms.current[1]);
+                cbms.current += cabms.current[1];
+            }
+        }
+        bucket = JSON.parse(localStorage.getItem(`t_notes_bucket`));
+        if(bucket) {
+            if(bucket.length !== 0) {
+                for(let i = 0; i < bucket.length; i++) {
+                    cabms.current[2] += bucket[i][1];
+                }
+                setT_notesBucketMinWeight(cabms.current[2]);
+                cbms.current += cabms.current[2];
+            }
+        }
+        bucket = JSON.parse(localStorage.getItem(`reit_bucket`));
+        if(bucket) {
+            if(bucket.length !== 0) {
+                for(let i = 0; i < bucket.length; i++) {
+                    cabms.current[3] += bucket[i][1];
+                }
+                setReitBucketMinWeight(cabms.current[3]);
+                cbms.current += cabms.current[3];
+            }
+        }
+        bucket = JSON.parse(localStorage.getItem(`crypto_bucket`));
+        if(bucket) {
+            if(bucket.length !== 0) {
+                for(let i = 0; i < bucket.length; i++) {
+                    cabms.current[4] += bucket[i][1];
+                }
+                setCryptoBucketMinWeight(cabms.current[4]);
+                cbms.current += cabms.current[4];
+            }
+        }
+        setCbmse(cbms.current - cabms.current[0]);
+        setCbmsc(cbms.current - cabms.current[1]);
+        setCbmst(cbms.current - cabms.current[2]);
+        setCbmsr(cbms.current - cabms.current[3]);
+        setCbmscr(cbms.current - cabms.current[4]);
     }
-  }, [searchText]);
-  const handleSearch = (e) => {
-    setSearchText(e.target.value);
-    const clearButton = document.getElementById("clear_button");
-    if (e.target.value !== "") {
-      clearButton.classList.remove(style.slideOut);
-      clearButton.classList.add(style.slideIn);
-    } else {
-      clearButton.classList.remove(style.slideIn);
-      clearButton.classList.add(style.slideOut);
-    }
-  };
-  const clearSearch = () => {
-    setSearchText("");
-    const clearButton = document.querySelector(`.${style.clear_button}`);
-    if (clearButton.classList.contains(style.slideIn)) {
-      clearButton.classList.remove(style.slideIn);
-      clearButton.classList.add(style.slideOut);
-    }
-  };
-  const handleCheckboxChange = async (ticker, name) => {
-    let tmp = [];
-    let tmp2 = JSON.parse(localStorage.getItem(`${current_selection}_list`));
-    setAdding_loading(true);
-    if (checkedItems.includes(ticker)) {
-      tmp = checkedItems.filter((item) => item !== ticker);
-      delete tmp2[ticker];
-      let tmp3 = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
-      delete tmp3.volatility_data[ticker];
-      delete tmp3.price_data[ticker];
-      let ind = tmp3.table_data.SYMBOLS.indexOf(ticker);
-      tmp3.table_data.SYMBOLS.splice(ind, 1);
-      tmp3.table_data.PRICE.splice(ind, 1);
-      tmp3.table_data.CHANGE.splice(ind, 1);
-      tmp3.table_data.PCHANGE.splice(ind, 1);
-      tmp3.table_data.LOW.splice(ind, 1);
-      tmp3.table_data.HIGH.splice(ind, 1);
-      localStorage.setItem(`${current_selection}_list_data`, JSON.stringify(tmp3));
-      localStorage.setItem(`${current_selection}_list`, JSON.stringify(tmp2));
-      setTickers(tmp2);
-      setTickersTableData(tmp3.table_data);
-    } else {
-      tmp = [...checkedItems, ticker];
-      tmp2[ticker] = name;
-      let tmp3 = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
-      const data = await get_tickers_data([ticker]);
-      tmp3.volatility_data[ticker] = data.volatility_data[ticker];
-      tmp3.price_data[ticker] = data.price_data[ticker];
-      tmp3.table_data.SYMBOLS.push(data.table_data.SYMBOLS[0]);
-      tmp3.table_data.PRICE.push(data.table_data.PRICE[0]);
-      tmp3.table_data.CHANGE.push(data.table_data.CHANGE[0]);
-      tmp3.table_data.PCHANGE.push(data.table_data.PCHANGE[0]);
-      tmp3.table_data.LOW.push(data.table_data.LOW[0]);
-      tmp3.table_data.HIGH.push(data.table_data.HIGH[0]);
-      localStorage.setItem(`${current_selection}_list_data`, JSON.stringify(tmp3));
-      localStorage.setItem(`${current_selection}_list`, JSON.stringify(tmp2));
-      setTickers(tmp2);
-      setTickersTableData(tmp3.table_data);
-    }
-    setAdding_loading(false);
-    setCheckedItems(tmp);
-  };
+  }, [analysis_options]);
 
-  const handleAddToBucket = (e) => {
-    e.preventDefault();
-    let bucket = JSON.parse(localStorage.getItem(`${current_selection}_bucket`));
-    let tick = selected_ticker;
-    let max_weight = parseFloat(maximum_weight),
-      min_weight = parseFloat(minimum_weight);
-    bucket = [...bucket, [tick, min_weight, max_weight]];
-    localStorage.setItem(`${current_selection}_bucket`, JSON.stringify(bucket));
-    window.location.reload();
-  };
+  useEffect(() => {
+    setCbmse(cbms.current - equity_bucket_min_weight);
+    setCbmsc(cbms.current - commodities_bucket_min_weight);
+    setCbmst(cbms.current - t_notes_bucket_min_weight);
+    setCbmsr(cbms.current - reit_bucket_min_weight);
+    setCbmscr(cbms.current - crypto_bucket_min_weight);
+  }, [equity_bucket_min_weight, commodities_bucket_min_weight, t_notes_bucket_min_weight, reit_bucket_min_weight, crypto_bucket_min_weight])
 
   return (
     <div className={style.home_container}>
+        {analysis_options && (
+            <div className={style.bucket_container} onClick={() => setAnalysisOptions(false)}>
+                <div className={style.bucket} onClick={(e) => e.stopPropagation()}>
+                    <div className={style.settings_header}>
+                        <h2>Analysis Options</h2>
+                    </div>
+                    <span className={style.closeButton} onClick={() => setAnalysisOptions(false)}>ⓧ</span>
+                    <div className={style.analysis_options}>
+                        <form onSubmit={loadResults}>
+                            <div className={style.analysis_options_input}>
+                                <label style={{ fontWeight: "bold", fontSize: "14px" }}>Start Date : </label>
+                                <input type="date" id="start_date" required={true} />
+                            </div>
+                            <div className={style.analysis_options_input}>
+                                <label style={{ fontWeight: "bold", fontSize: "14px" }}>End Date : </label>
+                                <input type="date" id="end_date" required={true} />
+                            </div>
+                            <div className={style.analysis_options_input}>
+                                <label style={{ fontWeight: "bold", fontSize: "14px" }}>Number of Simulations : </label>
+                                <input type="number" id="number_of_simulations" max={5000} placeholder="5000" />
+                            </div>
+                            <div className={style.analysis_options_input}>
+                                <label style={{ fontWeight: "bold", fontSize: "14px" }}>Initial Amount : </label>
+                                <input type="number" id="number_of_simulations" placeholder="10000" />
+                            </div>
+                            {equity_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>Equity Bucket Min Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={equity_bucket_min_weight} min={cabms.current[0]} max={100 - cbmse} 
+                                    onChange={(e) => {
+                                        cbms.current += Math.max(cabms.current[0], Math.min(e.target.value, 100 - cbmse)) - equity_bucket_min_weight;
+                                        setEquityBucketMinWeight(Math.max(cabms.current[0], Math.min(e.target.value, 100 - cbmse)));
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {equity_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>Equity Bucket Max Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={equity_bucket_max_weight} min={equity_bucket_min_weight} max={100} 
+                                    onChange={(e) => {
+                                        setEquityBucketMaxWeight(e.target.value);
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {commodities_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>Commodities Bucket Min Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={commodities_bucket_min_weight} min={cabms.current[1]} max={100 - cbmsc} 
+                                    onChange={(e) => {
+                                        cbms.current += Math.max(cabms.current[0], Math.min(e.target.value, 100 - cbmse)) - commodities_bucket_min_weight;
+                                        setCommoditiesBucketMinWeight(Math.max(cabms.current[1], Math.min(e.target.value, 100 - cbmsc)));
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {commodities_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>Commodities Bucket Max Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={commodities_bucket_max_weight} min={commodities_bucket_min_weight} max={100} 
+                                    onChange={(e) => {
+                                        setCommoditiesBucketMaxWeight(e.target.value);
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {t_notes_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>US Treasury Notes Bucket Min Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={t_notes_bucket_min_weight} min={cabms.current[2]} max={100 - cbmst} 
+                                    onChange={(e) => {
+                                        cbms.current += Math.max(cabms.current[0], Math.min(e.target.value, 100 - cbmse)) - t_notes_bucket_min_weight;
+                                        setT_notesBucketMinWeight(Math.max(cabms.current[2], Math.min(e.target.value, 100 - cbmst)));
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {t_notes_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>US Treasury Notes Bucket Max Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={t_notes_bucket_max_weight} min={t_notes_bucket_min_weight} max={100} 
+                                    onChange={(e) => {
+                                        setT_notesBucketMaxWeight(e.target.value);
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {reit_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>REITs Bucket Min Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={reit_bucket_min_weight} min={cabms.current[3]} max={100 - cbmsr} 
+                                    onChange={(e) => {
+                                        cbms.current += Math.max(cabms.current[0], Math.min(e.target.value, 100 - cbmse)) - reit_bucket_min_weight;
+                                        setReitBucketMinWeight(Math.max(cabms.current[3], Math.min(e.target.value, 100 - cbmsr)));
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {reit_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>REITs Bucket Max Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={reit_bucket_max_weight} min={reit_bucket_min_weight} max={100} 
+                                    onChange={(e) => {
+                                        setReitBucketMaxWeight(e.target.value);
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {crypto_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>Crypto Bucket Min Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={crypto_bucket_min_weight} min={cabms.current[4]} max={100 - cbmscr} 
+                                    onChange={(e) => {
+                                        cbms.current += Math.max(cabms.current[0], Math.min(e.target.value, 100 - cbmse)) - crypto_bucket_min_weight;
+                                        setCryptoBucketMinWeight(Math.max(cabms.current[4], Math.min(e.target.value, 100 - cbmscr)));
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            {crypto_bucket_min_weight && (
+                                <div className={style.analysis_options_input}>
+                                    <label style={{ fontWeight: "bold", fontSize: "14px" }}>Crypto Bucket Max Weight : </label>
+                                    <input style={{width: "40px"}} type="number" value={crypto_bucket_max_weight} min={crypto_bucket_min_weight} max={100}
+                                    onChange={(e) => {
+                                        setCryptoBucketMaxWeight(e.target.value);
+                                    }}
+                                    required={true} />
+                                </div>
+                            )}
+                            <button type="submit" className={style.settings_apply}>Analyze</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        )}
       {showSettings && (
         <div
           className={style.bucket_container}
@@ -400,12 +641,7 @@ const Home = () => {
             <div className={style.bucket_header}>
               <h2>Bucket</h2>
             </div>
-            <span
-              className={style.closeButton}
-              onClick={() => setShowBucket(false)}
-            >
-              ⓧ
-            </span>
+            <span className={style.closeButton} onClick={() => setShowBucket(false)}>ⓧ</span>
             <div className={style.bucket_table}>
               <table>
                 <thead>
@@ -595,12 +831,11 @@ const Home = () => {
                     <label>Minimum Weight</label>
                     <input
                       type="number"
-                      step="0.01"
                       value={minimum_weight}
-                      min="0.00"
-                      onChange={(e) => setMinimumWeight(e.target.value)}
-                      max={1 - cms.current}
-                      placeholder="0.00"
+                      min="0"
+                      onChange={(e) => setMinimumWeight(parseInt(e.target.value))}
+                      max={100 - cms.current}
+                      placeholder="0"
                       required={true}
                     />
                   </div>
@@ -608,12 +843,11 @@ const Home = () => {
                     <label>Maximum Weight</label>
                     <input
                       type="number"
-                      step="0.01"
                       value={maximum_weight}
                       min={minimum_weight}
-                      onChange={(e) => setMaximumWeight(e.target.value)}
-                      max="1.00"
-                      placeholder="1.00"
+                      onChange={(e) => setMaximumWeight(parseInt(e.target.value))}
+                      max="100"
+                      placeholder="100"
                       required={true}
                     />
                   </div>
@@ -624,11 +858,11 @@ const Home = () => {
           </div>
         </div>
         <div className={style.controller_buttons}>
-          <button className={style.home_chart_next}style={{ width: "100px" }}onClick={() => setShowSettings(true)}>Settings</button>
+          <button className={style.home_chart_next} style={{ width: "100px" }} onClick={() => setShowSettings(true)}>Settings</button>
           <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => setShowBucket(true)} >View Bucket</button>
           <button className={style.home_chart_next} style={{ width: "150px" }} onClick={() => {localStorage.removeItem(`${current_selection}_list`);window.location.reload();}}>Reset Tickers List</button>
           <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => {localStorage.setItem(`${current_selection}_bucket`, JSON.stringify([]));window.location.reload();}}>Reset Bucket</button>
-          <button className={style.home_chart_next} onClick={loadResults}>Next</button>
+          <button className={style.home_chart_next} onClick={() => setAnalysisOptions(true)}>Next</button>
         </div>
       </div>
     </div>
