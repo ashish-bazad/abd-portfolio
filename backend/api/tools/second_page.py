@@ -223,3 +223,267 @@ def initialize(stocks_list, start_date, end_date, benchmark_ticker, market_ticke
     result_dict['date'] = portfolio_value.reset_index()['Date']
 
     return result_dict
+
+def equal_weighting(stocks_list, start_date, end_date, benchmark_ticker, market_ticker, initial_amount):
+    """
+    Inputs:
+        stocks_list: list of stocks
+        start_date: start date of historical data
+        end_date: end date of historical data
+        benchmark_ticker: ticker of the chosen benchmark
+        market_ticker: ticker of chosen market for the portfolio, used for beta calculation
+        initial_amount: initially invested amount
+    """
+
+    ## FETCH DATA
+    stock_prices, stock_dividend = data.fetch_data(stocks_list, start_date=start_date, end_date=end_date, dividend=True)
+
+    ## CALCULATE LOG RETURNS
+    log_returns = np.log(stock_prices / stock_prices.shift(1))[1:]
+    log_returns_down_only = log_returns.applymap(lambda x: 0 if x>0 else x)
+
+    ANNUAL_TRADING_DAYS = 252
+    NUM_TRADING_DAYS = len(stock_prices)
+
+    ## EQUAL WEIGHTING
+    w = np.ones(stock_prices.shape[1])/stock_prices.shape[1] # shape: (10,)
+    w = np.expand_dims(w, axis=0) # shape: (1,10)
+
+    annual_portfolio_returns = np.exp(log_returns.mean() @ w.T * ANNUAL_TRADING_DAYS)[0] - 1
+    portfolio_risk = np.sqrt(w @ log_returns.cov() @ w.T * ANNUAL_TRADING_DAYS).iloc[0,0]
+    sortino_risk = np.sqrt(w @ log_returns_down_only.cov() @ w.T * ANNUAL_TRADING_DAYS).iloc[0,0]
+
+    weights = w.flatten()
+    risk_free_rate = 0.07
+    sharpe_ratio = (annual_portfolio_returns - risk_free_rate) / portfolio_risk
+    sortino_ratio = (annual_portfolio_returns - risk_free_rate) / sortino_risk
+
+    num_of_shares = INITIAL_AMT_INVESTED*weights/stock_prices.iloc[0,:]
+
+    portfolio_value = np.sum(stock_prices*num_of_shares, axis=1)
+    capital_gain = (portfolio_value[-1] / portfolio_value[0] - 1)*100
+    portfolio_dividend = np.sum(stock_dividend*num_of_shares, axis=1)
+    dividend_yield = 100*np.sum(portfolio_dividend) / INITIAL_AMT_INVESTED
+
+    portfolio_log_returns = np.log(portfolio_value / portfolio_value.shift(1))[1:]
+
+    ## MARKET
+    market_prices = data.fetch_data(market_ticker, start_date=start_date, end_date=end_date)
+    market_log_returns = np.log(market_prices / market_prices.shift(1))[1:]
+
+    market_shares_bought = INITIAL_AMT_INVESTED / market_prices.iloc[0,:]
+    market_value = np.sum(market_shares_bought * market_prices, axis=1)
+
+    market_gain = (market_value[-1] / market_value[0] - 1)*100
+
+    beta = calc_beta(portfolio_log_returns, market_log_returns.iloc[:,0])
+
+    treynor_ratio = (annual_portfolio_returns - risk_free_rate) / beta
+
+    annual_market_return = np.exp(market_log_returns.mean() * ANNUAL_TRADING_DAYS) - 1
+    CAPM_expected_return = risk_free_rate + beta*(annual_market_return - risk_free_rate)
+    jenson_alpha = annual_portfolio_returns - CAPM_expected_return
+
+    ## VaR CVaR calculation
+
+    sorted_returns = portfolio_value.pct_change()[1:]
+    sorted_returns = sorted_returns.sort_values()
+
+    ## Value-at-Risk 
+    var_at_90 = portfolio_value[-1]*VaR(sorted_returns, 0.90)
+    var_at_95 = portfolio_value[-1]*VaR(sorted_returns, 0.95)
+    var_at_99 = portfolio_value[-1]*VaR(sorted_returns, 0.99)
+
+    ## Conditional Value-at-Risk
+    cvar_at_90 = portfolio_value[-1]*CVaR(sorted_returns, 0.90)
+    cvar_at_95 = portfolio_value[-1]*CVaR(sorted_returns, 0.95)
+    cvar_at_99 = portfolio_value[-1]*CVaR(sorted_returns, 0.99)
+
+    probab = np.random.rand(NUM_SIMULATIONS)
+    simulated_returns = stats.norm.ppf(probab, loc=sorted_returns.mean(), scale=sorted_returns.std())
+
+    simulated_sorted_returns = np.sort(simulated_returns)
+    sim_var_at_90 = portfolio_value[-1]*CVaR(simulated_sorted_returns, 0.90)
+    sim_var_at_95 = portfolio_value[-1]*CVaR(simulated_sorted_returns, 0.95)
+    sim_var_at_99 = portfolio_value[-1]*CVaR(simulated_sorted_returns, 0.99)
+
+    ## BENCHMARK COMPARISON
+
+    benchmark_prices = data.fetch_data(benchmark_ticker, start_date=start_date, end_date=end_date)
+
+    benchmark_shares = INITIAL_AMT_INVESTED / benchmark_prices.iloc[0,:]
+    benchmark_value = np.sum(benchmark_shares * benchmark_prices, axis=1)
+    benchmark_log_returns = np.log(benchmark_value / benchmark_value.shift(1))[1:]
+
+    benchmark_gain = (benchmark_value[-1] / benchmark_value[0] - 1)*100
+
+    # Find the intersection of indices
+    index_intersect = np.intersect1d(benchmark_log_returns.index, portfolio_log_returns.index)
+
+    # Filter the log returns to only include the intersected indices
+    bm_p_log_difference = portfolio_log_returns[index_intersect] - benchmark_log_returns[index_intersect]
+
+    tracking_error_percent = bm_p_log_difference.std()*np.sqrt(ANNUAL_TRADING_DAYS)*100
+
+    information_ratio = (capital_gain - benchmark_gain)*(ANNUAL_TRADING_DAYS / NUM_TRADING_DAYS) / tracking_error_percent
+
+    ## CORRELATION MATRIX
+    correlation_matrix = log_returns.corr()
+
+    result_dict = {}
+    result_dict['capital_gain_%'] = capital_gain
+    result_dict['dividend_yield_%'] = dividend_yield
+    result_dict['market_gain_%'] = market_gain
+    result_dict['optimised_weights'] = weights
+    result_dict['portfolio_returns_%'] = annual_portfolio_returns
+    result_dict['portfolio_std'] = portfolio_risk
+    result_dict['portfolio_beta'] = beta
+    result_dict['sharpe'] = sharpe_ratio
+    result_dict['treynor'] = treynor_ratio
+    result_dict['sortino'] = sortino_ratio
+    result_dict['jenson'] = jenson_alpha
+    result_dict['var'] = {'90%':var_at_90, '95%':var_at_95, '99%':var_at_99}
+    result_dict['cvar'] = {'90%':cvar_at_90, '95%':cvar_at_95, '99%':cvar_at_99}
+    result_dict['var_monte_carlo'] = {'90%':sim_var_at_90, '95%':sim_var_at_95, '99%':sim_var_at_99}
+    result_dict['portfolio_value'] = portfolio_value
+    result_dict['portfolio_dividend'] = portfolio_dividend
+    result_dict['var_monte_carlo_simulated_returns'] = simulated_returns
+    result_dict['benchmark_returns_%'] = benchmark_gain
+    result_dict['tracking_error_%'] = tracking_error_percent
+    result_dict['information_ratio'] = information_ratio
+    result_dict['benchmark_value'] = benchmark_value
+    result_dict['correlation_matrix'] = correlation_matrix
+
+def risk_parity(stocks_list, start_date, end_date, benchmark_ticker, market_ticker, initial_amount):
+    """
+    Inputs:
+        stocks_list: list of stocks
+        start_date: start date of historical data
+        end_date: end date of historical data
+        benchmark_ticker: ticker of the chosen benchmark
+        market_ticker: ticker of chosen market for the portfolio, used for beta calculation
+        initial_amount: initially invested amount
+    """
+
+    ## FETCH DATA
+    stock_prices, stock_dividend = data.fetch_data(stocks_list, start_date=start_date, end_date=end_date, dividend=True)
+
+    ## CALCULATE LOG RETURNS
+    log_returns = np.log(stock_prices / stock_prices.shift(1))[1:]
+    log_returns_down_only = log_returns.applymap(lambda x: 0 if x>0 else x)
+
+    ANNUAL_TRADING_DAYS = 252
+    NUM_TRADING_DAYS = len(stock_prices)
+
+    ## Equal Weighting
+    w = 1 / np.array(stock_prices.std()) # shape: (10,)
+    w /= w.sum()
+
+    if w.sum() != 1.0:
+        w /= w.sum() 
+    w = np.expand_dims(w, axis=0) # shape: (1,10)
+
+    annual_portfolio_returns = np.exp(log_returns.mean() @ w.T * ANNUAL_TRADING_DAYS)[0] - 1
+    portfolio_risk = np.sqrt(w @ log_returns.cov() @ w.T * ANNUAL_TRADING_DAYS).iloc[0,0]
+    sortino_risk = np.sqrt(w @ log_returns_down_only.cov() @ w.T * ANNUAL_TRADING_DAYS).iloc[0,0]
+
+    weights = w.flatten()
+    risk_free_rate = 0.07
+    sharpe_ratio = (annual_portfolio_returns - risk_free_rate) / portfolio_risk
+    sortino_ratio = (annual_portfolio_returns - risk_free_rate) / sortino_risk
+
+    num_of_shares = INITIAL_AMT_INVESTED*weights/stock_prices.iloc[0,:]
+
+    portfolio_value = np.sum(stock_prices*num_of_shares, axis=1)
+    capital_gain = (portfolio_value[-1] / portfolio_value[0] - 1)*100
+    portfolio_dividend = np.sum(stock_dividend*num_of_shares, axis=1)
+    dividend_yield = 100*np.sum(portfolio_dividend) / INITIAL_AMT_INVESTED
+
+    portfolio_log_returns = np.log(portfolio_value / portfolio_value.shift(1))[1:]
+
+    ## MARKET
+    market_prices = data.fetch_data(market_ticker, start_date=start_date, end_date=end_date)
+    market_log_returns = np.log(market_prices / market_prices.shift(1))[1:]
+
+    market_shares_bought = INITIAL_AMT_INVESTED / market_prices.iloc[0,:]
+    market_value = np.sum(market_shares_bought * market_prices, axis=1)
+
+    market_gain = (market_value[-1] / market_value[0] - 1)*100
+
+    beta = calc_beta(portfolio_log_returns, market_log_returns.iloc[:,0])
+
+    treynor_ratio = (annual_portfolio_returns - risk_free_rate) / beta
+
+    annual_market_return = np.exp(market_log_returns.mean() * ANNUAL_TRADING_DAYS) - 1
+    CAPM_expected_return = risk_free_rate + beta*(annual_market_return - risk_free_rate)
+    jenson_alpha = annual_portfolio_returns - CAPM_expected_return
+
+    ## VaR CVaR calculation
+
+    sorted_returns = portfolio_value.pct_change()[1:]
+    sorted_returns = sorted_returns.sort_values()
+
+    ## Value-at-Risk 
+    var_at_90 = portfolio_value[-1]*VaR(sorted_returns, 0.90)
+    var_at_95 = portfolio_value[-1]*VaR(sorted_returns, 0.95)
+    var_at_99 = portfolio_value[-1]*VaR(sorted_returns, 0.99)
+
+    ## Conditional Value-at-Risk
+    cvar_at_90 = portfolio_value[-1]*CVaR(sorted_returns, 0.90)
+    cvar_at_95 = portfolio_value[-1]*CVaR(sorted_returns, 0.95)
+    cvar_at_99 = portfolio_value[-1]*CVaR(sorted_returns, 0.99)
+
+    probab = np.random.rand(NUM_SIMULATIONS)
+    simulated_returns = stats.norm.ppf(probab, loc=sorted_returns.mean(), scale=sorted_returns.std())
+
+    simulated_sorted_returns = np.sort(simulated_returns)
+    sim_var_at_90 = portfolio_value[-1]*CVaR(simulated_sorted_returns, 0.90)
+    sim_var_at_95 = portfolio_value[-1]*CVaR(simulated_sorted_returns, 0.95)
+    sim_var_at_99 = portfolio_value[-1]*CVaR(simulated_sorted_returns, 0.99)
+
+    ## BENCHMARK COMPARISON
+
+    benchmark_prices = data.fetch_data(benchmark_ticker, start_date=start_date, end_date=end_date)
+
+    benchmark_shares = INITIAL_AMT_INVESTED / benchmark_prices.iloc[0,:]
+    benchmark_value = np.sum(benchmark_shares * benchmark_prices, axis=1)
+    benchmark_log_returns = np.log(benchmark_value / benchmark_value.shift(1))[1:]
+
+    benchmark_gain = (benchmark_value[-1] / benchmark_value[0] - 1)*100
+
+    # Find the intersection of indices
+    index_intersect = np.intersect1d(benchmark_log_returns.index, portfolio_log_returns.index)
+
+    # Filter the log returns to only include the intersected indices
+    bm_p_log_difference = portfolio_log_returns[index_intersect] - benchmark_log_returns[index_intersect]
+
+    tracking_error_percent = bm_p_log_difference.std()*np.sqrt(ANNUAL_TRADING_DAYS)*100
+
+    information_ratio = (capital_gain - benchmark_gain)*(ANNUAL_TRADING_DAYS / NUM_TRADING_DAYS) / tracking_error_percent
+
+    ## CORRELATION MATRIX
+    correlation_matrix = log_returns.corr()
+
+    result_dict = {}
+    result_dict['capital_gain_%'] = capital_gain
+    result_dict['dividend_yield_%'] = dividend_yield
+    result_dict['market_gain_%'] = market_gain
+    result_dict['optimised_weights'] = weights
+    result_dict['portfolio_returns_%'] = annual_portfolio_returns
+    result_dict['portfolio_std'] = portfolio_risk
+    result_dict['portfolio_beta'] = beta
+    result_dict['sharpe'] = sharpe_ratio
+    result_dict['treynor'] = treynor_ratio
+    result_dict['sortino'] = sortino_ratio
+    result_dict['jenson'] = jenson_alpha
+    result_dict['var'] = {'90%':var_at_90, '95%':var_at_95, '99%':var_at_99}
+    result_dict['cvar'] = {'90%':cvar_at_90, '95%':cvar_at_95, '99%':cvar_at_99}
+    result_dict['var_monte_carlo'] = {'90%':sim_var_at_90, '95%':sim_var_at_95, '99%':sim_var_at_99}
+    result_dict['portfolio_value'] = portfolio_value
+    result_dict['portfolio_dividend'] = portfolio_dividend
+    result_dict['var_monte_carlo_simulated_returns'] = simulated_returns
+    result_dict['benchmark_returns_%'] = benchmark_gain
+    result_dict['tracking_error_%'] = tracking_error_percent
+    result_dict['information_ratio'] = information_ratio
+    result_dict['benchmark_value'] = benchmark_value
+    result_dict['correlation_matrix'] = correlation_matrix
