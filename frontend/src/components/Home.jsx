@@ -485,7 +485,7 @@ const Home = () => {
                                     <option value="^NSEI">^NSEI</option>
                                 </select>
                             </div>
-                            {equity_bucket_min_weight && (
+                            {equity_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>Equity Bucket Min Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={equity_bucket_min_weight} min={cabms.current[0]} max={100 - cbmse} 
@@ -496,7 +496,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {equity_bucket_min_weight && (
+                            {equity_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>Equity Bucket Max Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={equity_bucket_max_weight} min={equity_bucket_min_weight} max={100} 
@@ -506,7 +506,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {commodities_bucket_min_weight && (
+                            {commodities_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>Commodities Bucket Min Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={commodities_bucket_min_weight} min={cabms.current[1]} max={100 - cbmsc} 
@@ -517,7 +517,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {commodities_bucket_min_weight && (
+                            {commodities_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>Commodities Bucket Max Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={commodities_bucket_max_weight} min={commodities_bucket_min_weight} max={100} 
@@ -527,7 +527,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {t_notes_bucket_min_weight && (
+                            {t_notes_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>US Treasury Notes Bucket Min Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={t_notes_bucket_min_weight} min={cabms.current[2]} max={100 - cbmst} 
@@ -538,7 +538,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {t_notes_bucket_min_weight && (
+                            {t_notes_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>US Treasury Notes Bucket Max Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={t_notes_bucket_max_weight} min={t_notes_bucket_min_weight} max={100} 
@@ -548,7 +548,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {reit_bucket_min_weight && (
+                            {reit_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>REITs Bucket Min Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={reit_bucket_min_weight} min={cabms.current[3]} max={100 - cbmsr} 
@@ -559,7 +559,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {reit_bucket_min_weight && (
+                            {reit_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>REITs Bucket Max Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={reit_bucket_max_weight} min={reit_bucket_min_weight} max={100} 
@@ -569,7 +569,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {crypto_bucket_min_weight && (
+                            {crypto_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>Crypto Bucket Min Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={crypto_bucket_min_weight} min={cabms.current[4]} max={100 - cbmscr} 
@@ -580,7 +580,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            {crypto_bucket_min_weight && (
+                            {crypto_bucket_min_weight !== null && (
                                 <div className={style.analysis_options_input}>
                                     <label style={{ fontWeight: "bold", fontSize: "14px" }}>Crypto Bucket Max Weight : </label>
                                     <input style={{width: "40px"}} type="number" value={crypto_bucket_max_weight} min={crypto_bucket_min_weight} max={100}
@@ -613,15 +613,12 @@ const Home = () => {
                 value={tperiod}
                 onChange={(e) => setTperiod(e.target.value)}
               >
-                <option value="1d">1 Day</option>
                 <option value="5d">5 Days</option>
                 <option value="1mo">1 Month</option>
                 <option value="3mo">3 Months</option>
                 <option value="6mo">6 Months</option>
                 <option value="1y">1 Year</option>
                 <option value="2y">2 Years</option>
-                <option value="5y">5 Years</option>
-                <option value="10y">10 Years</option>
               </select>
             </div>
             <span

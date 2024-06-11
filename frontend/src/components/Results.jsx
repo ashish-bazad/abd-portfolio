@@ -401,7 +401,7 @@ const Results = () => {
                 </div>
 
                 <div className={style.split_view_item}>
-                    <label style={{fontWeight:'bold'}}>Portfolio Heatmap View</label>
+                    <label style={{fontWeight:'bold'}}>Portfolio Treemap View</label>
                     <div className={style.split_view_chart_2}>
                     <Plot
                             data = {tree_data}
