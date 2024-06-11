@@ -240,7 +240,7 @@ const Results = () => {
                         <label style={{fontWeight:'bold'}}>Portfolio Parameters</label>
                         <div className={style.portfolio_value_evaluation_item_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.p_capital_gain.toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.p_portfolio_returns.toFixed(3)}</label>
                                 <label style={{fontWeight:'bold', margin:'0'}}>Annual Returns (%)</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
