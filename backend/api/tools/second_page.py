@@ -201,6 +201,7 @@ def initialize(stocks_list, start_date, end_date, benchmark_ticker, market_ticke
     result_dict['p_dividend_yield'] = dividend_yield
     result_dict['p_market_gain'] = market_gain
     result_dict['optimised_weights'] = optimised_weights
+    result_dict['tickers_list'] = stocks_list
     result_dict['p_portfolio_returns'] = annual_portfolio_returns
     result_dict['portfolio_std'] = portfolio_risks[index]
     result_dict['portfolio_beta'] = beta

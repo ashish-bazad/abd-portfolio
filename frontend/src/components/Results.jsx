@@ -1,20 +1,7 @@
 import React, { useEffect, useRef, useState, useContext } from 'react'
 import style from './results.module.css'
-import { Line, Pie } from 'react-chartjs-2';
 import { useNavigate } from "react-router-dom";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, PieController } from 'chart.js';
-
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-    ArcElement,
-    PieController,
-  );
+import Plot from 'react-plotly.js';
 
 const Results = () => {
     let [selectedOption, setSelectedOption] = useState('option1');
@@ -35,72 +22,98 @@ const Results = () => {
     let [reit_bucket_max_weight, setReitBucketMaxWeight] = useState(100);
     let [crypto_bucket_min_weight, setCryptoBucketMinWeight] = useState(null);
     let [crypto_bucket_max_weight, setCryptoBucketMaxWeight] = useState(100);
-    
-    let [tmp, setTmp] = useState(true);
+    let [data_p_x, setData_p_x] = useState(['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00']);
+    let [data_p_y, setData_p_y] = useState([1, 3, 6]);
+    let [data_b_y, setData_b_y] = useState([1, 3, 6]);
+    let [data_m_y, setData_m_y] = useState([1, 3, 6]);
+    let [data_corr, setData_corr] = useState({
+            "CANBK.NS": [1, 0.060724837670530794],
+            "GC=F": [0.060724837670530794, 1]
+    });
+    let [pie_values, setPie_values] = useState([10, 20, 30, 40]);
+    let [pie_labels, setPie_labels] = useState(['Equity', 'Commodities', 'T-Notes', 'REIT']);
+    const corr_data = Object.keys(data_corr).map(key => data_corr[key]);
+    const labels = Object.keys(data_corr);
+    const intext_label = Object.keys(data_corr).map(key => data_corr[key].map(value => value.toFixed(2)));
     const navigate = useNavigate();
-    if(!localStorage.getItem('results')) {
-        navigate('/');
-    }
+    useEffect(() => {
+        if(!localStorage.getItem('results')) {
+            navigate('/');
+        }
+    }, [navigate])
     let results = JSON.parse(localStorage.getItem('results'));
-    if(tmp) {
-        setTmp(false);
-        console.log(results);
-    }
+    let should_set_data = useRef(true);
+    useEffect(() => {
+        if(should_set_data.current) {
+            should_set_data.current = false;
+            console.log(results)
+            setData_p_x(results.date)
+            setData_p_y(results.portfolio_value)
+            setData_b_y(results.benchmark_value)
+            setData_m_y(results.var_monte_carlo_simulated_returns)
+            setData_corr(results.correlation_matrix)
+            setPie_values(results.optimised_weights)
+            setPie_labels(results.tickers_list)
+        }
+    }, [])
     const handleOptionChange = (event) => {
         setSelectedOption(event.target.value);
     };
-    const pieChartOptions = {
-        plugins: {
-            legend: {
-                display: false // Disable the legend
+    var data_portfolio_value = [
+        {
+          x: data_p_x,
+          y: data_p_y,
+          type: 'scatter',
+          line: { color: '#1e90ff' },
+        //   xbins: {size: 0.02},
+        }
+    ];
+    var data_benchmark_value = [
+        {
+            x: data_p_x,
+            y: data_p_y,
+            type: 'scatter',
+            line: { color: '#1e90ff' },
+            name: 'Portfolio'
+        },
+        {
+            x: data_p_x,
+            y: data_b_y,
+            type: 'scatter',
+            line: { color: '#228b22' },
+            name: '^NSEI'
+        }
+    ]
+    var data_monte_carlo_value = [
+        {
+          x: data_m_y,
+          type: 'histogram',
+          marker: { color: '#1e90ff' },
+        }
+    ];
+    var correlation_data = [
+        {
+            x: labels,
+            y: labels,
+            z: corr_data,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            text: intext_label,
+            texttemplate: '%{text}',
+            textfont: {
+                size: '12',
+                color: 'white',
             }
         }
-    };
+    ]
+    var pie_data = [
+        {
+            values: pie_values,
+            labels: pie_labels,
+            type: 'pie',
+        }
+    ]
 
-    const chartDataPie = {
-        labels: ['Red', 'Blue', 'Yellow'],
-        datasets: [
-            {
-                label: 'Demo Pie Chart',
-                data: [30, 40, 30],
-                backgroundColor: ['red', 'blue', 'yellow']
-            }
-        ]
-    };
-    
-    const chartData = {
-        labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-        datasets: [
-            {
-                label: 'Stock Price',
-                data: [65, 59, 80, 81, 56, 55],
-                fill: false,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0,
-                pointRadius: 0
-            }
-        ]
-    };
-    const chartOptions = {
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            x: {
-                grid: {
-                    display: false
-                }
-            },
-            y: {
-                grid: {
-                    display: false
-                }
-            }
-        },
-        maintainAspectRatio: false
-    };
     return (
     <div className={style.results_container}>
         <div className={style.results}>
@@ -171,25 +184,60 @@ const Results = () => {
                 <label style={{fontWeight:'bold'}}>Portfolio Value</label>
                 <div className={style.results_portfolio_value_items}>
                     <div className={style.results_portfolio_value_chart}>
-                        <Line data={chartData} options={chartOptions} />
+                        <Plot
+                            data = {data_portfolio_value}
+                            layout={{
+                                width: 950,
+                                height: 220,
+                                margin: {
+                                    l: 30,
+                                    r: 10,
+                                    t: 10,
+                                    b: 30,
+                                  },
+                            }}
+                            config={{
+                                scrollZoom: true,
+                                responsive: true,
+                                displaylogo: false,
+                            }}
+                        />
                     </div>
                     <div className={style.results_portfolio_value_data_right}>
                         <div className={style.results_portfolio_value_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{(results.p_capital_gain).toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{(results.p_capital_gain).toFixed(3)}</label>
                                 <label style={{fontWeight:'bold', margin:'0', fontSize:'12px'}}>Capital Gain (%)</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{(results.p_market_gain).toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{(results.p_market_gain).toFixed(3)}</label>
                                 <label style={{fontWeight:'bold', margin:'0', fontSize:'12px'}}>Market Gain (%)</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{(results.p_dividend_yield).toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{(results.p_dividend_yield).toFixed(3)}</label>
                                 <label style={{fontWeight:'bold', margin:'0', fontSize:'12px'}}>Dividend Yield (%)</label>
                             </div>
                         </div>
                         <div className={style.results_portfolio_value_pie_chart}>
-                            <Pie data={chartDataPie} options={pieChartOptions} />
+                            <Plot
+                            data = {pie_data}
+                            layout={{
+                                width: 265,
+                                height: 220,
+                                margin: {
+                                    l: 30,
+                                    r: 10,
+                                    t: 10,
+                                    b: 30,
+                                  },
+                                showlegend: false
+                            }}
+                            config={{
+                                scrollZoom: true,
+                                responsive: true,
+                                displaylogo: false,
+                            }}
+                        />
                         </div>
                     </div>
                 </div>
@@ -202,37 +250,37 @@ const Results = () => {
                         <label style={{fontWeight:'bold'}}>Portfolio Evaluation</label>
                         <div className={style.portfolio_value_evaluation_item_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.sharpe.toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.sharpe.toFixed(3)}</label>
                                 <label style={{fontWeight:'bold', margin:'0'}}>Sharpe Ratio</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.treynor.toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.treynor.toFixed(3)}</label>
                                 <label style={{fontWeight:'bold', margin:'0'}}>Treynor Ratio</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.sortino.toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.sortino.toFixed(3)}</label>
                                 <label style={{fontWeight:'bold', margin:'0'}}>Sortino Ratio</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.jenson[0].toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.jenson[0].toFixed(3)}</label>
                                 <label style={{fontWeight:'bold', margin:'0'}}>Jenson's Alpha</label>
                             </div>
                         </div>
                     </div>
                     <div className={style.results_portfolio_value_evaluation_item}>
-                        <label style={{fontWeight:'bold'}}>Value-at-Risk (VAR)</label>
+                        <label style={{fontWeight:'bold'}}>Portfolio Parameters</label>
                         <div className={style.portfolio_value_evaluation_item_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.var.ninety_p.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>90% Confidence Level</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.p_capital_gain.toFixed(3)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>Portfolio Returns (%)</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.var.ninety_five_p.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>95% Confidence Level</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.portfolio_std.toFixed(3)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>Standard Deviation</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.var.ninety_nine_p.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>99% Confidence Level</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.portfolio_beta.toFixed(3)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>Portfolio Beta</label>
                             </div>
                         </div>
                     </div>
@@ -240,19 +288,19 @@ const Results = () => {
 
                 <div className={style.results_portfolio_value_evaluation}>
                     <div className={style.results_portfolio_value_evaluation_item}>
-                        <label style={{fontWeight:'bold'}}>Portfolio Parameters</label>
+                        <label style={{fontWeight:'bold'}}>Value-at-Risk (VAR)</label>
                         <div className={style.portfolio_value_evaluation_item_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.p_capital_gain.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>Portfolio Returns (%)</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.var.ninety_p.toFixed(2)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>90% Confidence Level</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.portfolio_std.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>Standard Deviation</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.var.ninety_five_p.toFixed(2)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>95% Confidence Level</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.portfolio_beta.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>Portfolio Beta</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.var.ninety_nine_p.toFixed(2)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>99% Confidence Level</label>
                             </div>
                         </div>
                     </div>
@@ -260,15 +308,15 @@ const Results = () => {
                         <label style={{fontWeight:'bold'}}>Conditional Value-at-Risk (VAR)</label>
                         <div className={style.portfolio_value_evaluation_item_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.cvar.ninety_p.toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.cvar.ninety_p.toFixed(2)}</label>
                                 <label style={{fontWeight:'bold', margin:'0'}}>90% Confidence Level</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.cvar.ninety_five_p.toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.cvar.ninety_five_p.toFixed(2)}</label>
                                 <label style={{fontWeight:'bold', margin:'0'}}>95% Confidence Level</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.cvar.ninety_nine_p.toFixed(3)}</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.cvar.ninety_nine_p.toFixed(2)}</label>
                                 <label style={{fontWeight:'bold', margin:'0'}}>99% Confidence Level</label>
                             </div>
                         </div>
@@ -278,46 +326,80 @@ const Results = () => {
 
             <div className={style.split_view}>
                 <div className={style.split_view_item}>
-                    <label style={{fontWeight:'bold'}}>Value-at-Risk: Monte Carlo Method</label>
+                    <label style={{fontWeight:'bold'}}>Benchmark Comparison</label>
                     <div className={style.split_view_item_data}>
                         <div className={style.split_view_chart}>
-                            <Line data={chartData} options={chartOptions} />
+                            <Plot
+                            data = {data_benchmark_value}
+                            layout={{
+                                width: 480,
+                                height: 180,
+                                margin: {
+                                    l: 30,
+                                    r: 10,
+                                    t: 10,
+                                    b: 30,
+                                  },
+                            }}
+                            config={{
+                                scrollZoom: true,
+                                responsive: true,
+                                displaylogo: false,
+                            }}
+                        />
                         </div>
                         <div className={style.split_view_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.var_monte_carlo.ninety_p.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>90% Confidence Level</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.p_benchmark_returns.toFixed(3)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>Benchmark Returns (%)</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.var_monte_carlo.ninety_five_p.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>95% Confidence Level</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.p_tracking_error.toFixed(3)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>Tracking Error (%)</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.var_monte_carlo.ninety_nine_p.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>99% Confidence Level</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.information_ratio.toFixed(3)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>Information Ratio</label>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className={style.split_view_item}>
-                    <label style={{fontWeight:'bold'}}>Benchmark Comparison</label>
+                    <label style={{fontWeight:'bold'}}>Value-at-Risk: Monte Carlo Method</label>
                     <div className={style.split_view_item_data}>
                         <div className={style.split_view_chart}>
-                            <Line data={chartData} options={chartOptions} />
+                        <Plot
+                            data = {data_monte_carlo_value}
+                            layout={{
+                                width: 480,
+                                height: 180,
+                                margin: {
+                                    l: 30,
+                                    r: 10,
+                                    t: 10,
+                                    b: 30,
+                                  },
+                            }}
+                            config={{
+                                scrollZoom: true,
+                                responsive: true,
+                                displaylogo: false,
+                            }}
+                        />
                         </div>
                         <div className={style.split_view_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.p_benchmark_returns.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>Benchmark Returns (%)</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.var_monte_carlo.ninety_p.toFixed(2)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>90% Confidence Level</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.p_tracking_error.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>Standard Deviation</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.var_monte_carlo.ninety_five_p.toFixed(2)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>95% Confidence Level</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
-                                <label style={{fontSize:'20px', margin:'0'}}>{results.information_ratio.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>Tracking Error (%)</label>
+                                <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.var_monte_carlo.ninety_nine_p.toFixed(2)}</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>99% Confidence Level</label>
                             </div>
                         </div>
                     </div>
@@ -328,14 +410,31 @@ const Results = () => {
                 <div className={style.split_view_item}>
                     <label style={{fontWeight:'bold'}}>Portfolio Correlation</label>
                     <div className={style.split_view_chart_2}>
-                        <Line data={chartData} options={chartOptions} />
+                        <Plot
+                            data = {correlation_data}
+                            layout={{
+                                width: 630,
+                                height: 585,
+                                margin: {
+                                    l: 100,
+                                    r: 10,
+                                    t: 10,
+                                    b: 30,
+                                  },
+                            }}
+                            config={{
+                                scrollZoom: true,
+                                responsive: true,
+                                displaylogo: false,
+                            }}
+                        />
                     </div>
                 </div>
 
                 <div className={style.split_view_item}>
                     <label style={{fontWeight:'bold'}}>Portfolio Heatmap View</label>
                     <div className={style.split_view_chart_2}>
-                        <Line data={chartData} options={chartOptions} />
+                        {/* <Line data={chartData} options={chartOptions} /> */}
                     </div>
                 </div>
             </div>

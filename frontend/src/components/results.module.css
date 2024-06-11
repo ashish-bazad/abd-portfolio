@@ -91,18 +91,22 @@
     justify-content: space-between;
     align-items: center;
     width: 30%;
+    /* border: 1px solid #ddd */
 }
 .results_portfolio_value_chart {
-    width: 65%;
+    width: 69%;
     height: 25vh;
+    border: 1px solid #ddd;
 }
 .results_portfolio_value_pie_chart {
+    /* border: 1px solid #ddd; */
     height: 25vh;
+    width: 65%;
 }
 .results_portfolio_value {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    justify-content: space-between;
 }
 .results_portfolio_value_items {
     display: flex;
@@ -131,6 +135,7 @@
 .split_view_chart {
     width: 75%;
     height: 20vh;
+    border: 1px solid #ddd;
 }
 .split_view_data {
     display: flex;
@@ -139,5 +144,6 @@
 }
 .split_view_chart_2 {
     width: 100%;
-    height: 20vh;
+    height: 65vh;
+    border: 1px solid #ddd;
 }

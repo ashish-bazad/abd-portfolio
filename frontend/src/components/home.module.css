@@ -46,7 +46,7 @@
     align-items: center;
     justify-content: center;
     width: 50%;
-    margin: 10px 20px 10px 20px;
+    margin: 10px 10px 10px 20px;
 }
 .home_chart {
     display: flex;
@@ -54,16 +54,19 @@
     align-items: center;
     width: 50%;
     border: 1px solid #ddd;
-    margin: 10px 20px 10px 20px;
+    margin: 10px 20px 10px 0px;
     height: 77vh;
     overflow-y: scroll;
-    padding: 30px 10px 10px 10px;
+    padding: 20px 10px 10px 10px;
+    gap: 10px;
 }
 
 .home_chart_price, .home_chart_volatility {
     /* margin: 20px 0px 20px 0px; */
-    width: 670px;
-    height: 500px;
+    /* width: 670px; */
+    /* height: 500px; */
+    border: 1px solid #ddd;
+
 }
 Link {
     margin: 0;
@@ -140,7 +143,7 @@ td input {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    margin: 20px 0px 20px 0px;
+    margin: 10px 0px 20px 0px;
 }
 .home_chart_add_to_bucket_form {
     display: flex;

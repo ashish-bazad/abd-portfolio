@@ -124,7 +124,6 @@ const Home = () => {
     useEffect(() => {
       if(selected_ticker !== null) {
         let data = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
-        console.log(data);
         setData_x(data.price_data['DATE']);
         setData_y(data.price_data[selected_ticker[0]]);
         setData_x_v(data.volatility_data['DATE']);
@@ -877,11 +876,47 @@ const Home = () => {
                 </div>
               </form>
             </div>
+            <label style={{fontWeight:'bold'}}>Price Chart</label>
             <div className={style.home_chart_price}>
-              <Plot data = {data} layout = {{width: 670, height: 500, title: selected_ticker ? selected_ticker[1] + ' Price Data' : 'Price Data'}}/>
+              <Plot
+                data = {data.map(trace => ({...trace, line: {color: '#1e90ff'}}))}
+                layout = {{ 
+                  width: 660,
+                  height: 300,
+                  margin: {
+                    l: 40,
+                    r: 40,
+                    t: 0,
+                    b: 20,
+                  }
+                }}
+                config = {{ 
+                  displaylogo: false,
+                  responsive: true,
+                  scrollZoom: true,
+                }}
+              />
             </div>
+            <label style={{fontWeight:'bold'}}>Volatility Chart</label>
             <div className={style.home_chart_price}>
-              <Plot data = {data_v} layout = {{width: 670, height: 500, title: selected_ticker ? selected_ticker[1] + ' Volatility Data' : 'Volatility Data'}}/>
+              <Plot
+                data = {data_v.map(trace => ({ ...trace, line: { color: '#228b22' } }))}
+                layout = {{
+                  width: 660, 
+                  height: 220, 
+                  margin: {
+                    l: 40,
+                    r: 40,
+                    t: 10,
+                    b: 0,
+                  },
+                }}
+                config = {{
+                  displaylogo: false,
+                  responsive: true,
+                  scrollZoom: true,
+                }}
+              />
             </div>
           </div>
         </div>
