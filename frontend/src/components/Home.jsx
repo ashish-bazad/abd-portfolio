@@ -1,29 +1,8 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { Line } from "react-chartjs-2";
 import { useNavigate } from "react-router-dom";
 import style from "./home.module.css";
-// import popoutIcon from '../assets/popout.svg';
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LineElement,
-  LinearScale,
-  PointElement,
-  Title,
-  Tooltip,
-} from "chart.js";
-import AuthContext from "../utility/AuthContext";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-);
+import Plot from 'react-plotly.js';
+import AuthContext from '../utility/AuthContext';
 
 const Home = () => {
     let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data, analyze_data } = useContext(AuthContext);
@@ -67,6 +46,10 @@ const Home = () => {
     let [reit_bucket_max_weight, setReitBucketMaxWeight] = useState(100);
     let [crypto_bucket_min_weight, setCryptoBucketMinWeight] = useState(null);
     let [crypto_bucket_max_weight, setCryptoBucketMaxWeight] = useState(100);
+    let [data_x, setData_x] = useState(['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00']);
+    let [data_y, setData_y] = useState([1, 3, 6]);
+    let [data_x_v, setData_x_v] = useState(['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00']);
+    let [data_y_v, setData_y_v] = useState([1, 3, 6]);
     let [analysing, setAnalysing] = useState(false);
     const navigate = useNavigate();
 
@@ -138,7 +121,16 @@ const Home = () => {
             cms.current += bucket[i][1];
         }
     }, [currentSelection]);
-
+    useEffect(() => {
+      if(selected_ticker !== null) {
+        let data = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
+        console.log(data);
+        setData_x(data.price_data['DATE']);
+        setData_y(data.price_data[selected_ticker[0]]);
+        setData_x_v(data.volatility_data['DATE']);
+        setData_y_v(data.volatility_data[selected_ticker[0]]);
+      }
+    }, [selected_ticker])
     const gather_ticker_data = async (ticker) => {
         setSelectedTicker(ticker);
     };
@@ -162,62 +154,62 @@ const Home = () => {
         !localStorage.getItem("t_notes_list_data") ||
         !localStorage.getItem("reit_list") ||
         !localStorage.getItem("reit_list_data") ||
-        // !localStorage.getItem("crypto_list") ||
-        // !localStorage.getItem("crypto_list_data") ||
+        !localStorage.getItem("crypto_list") ||
+        !localStorage.getItem("crypto_list_data") ||
         lastUpdated.toDateString() !== currentTime.toDateString() ||
         (currentTime >= updateTime && lastUpdated < updateTime);
         if (needsUpdate) {
-        // Get the list of tickers
-        if (!localStorage.getItem("equity_list")) {
-            const data = await get_tickers_equity();
-            localStorage.setItem("equity_list", JSON.stringify(data.tickers));
-        }
-        if (!localStorage.getItem("commodities_list")) {
-            const data = await get_tickers_commodities();
-            localStorage.setItem("commodities_list", JSON.stringify(data.tickers));
-        }
-        if (!localStorage.getItem("t_notes_list")) {
-            const data = await get_tickers_t_notes();
-            localStorage.setItem("t_notes_list", JSON.stringify(data.tickers));
-        }
-        if (!localStorage.getItem("reit_list")) {
-            const data = await get_tickers_reit();
-            localStorage.setItem("reit_list", JSON.stringify(data.tickers));
-        }
-        // if (!localStorage.getItem("crypto_list")) {
-        //   const data = await get_tickers_crypto();
-        //   localStorage.setItem("crypto_list", JSON.stringify(data.tickers));
-        // }
-        setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
-        
-        // Get data for all the tickers
-        let prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("equity_list"))));
-        localStorage.setItem("equity_list_data", JSON.stringify(prices_list));
-        prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("commodities_list"))));
-        localStorage.setItem("commodities_list_data", JSON.stringify(prices_list));
-        prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("t_notes_list"))));
-        localStorage.setItem("t_notes_list_data", JSON.stringify(prices_list));
-        prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("reit_list"))));
-        localStorage.setItem("reit_list_data", JSON.stringify(prices_list));
-        // prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("crypto_list"))));
-        // localStorage.setItem("crypto_list_data", JSON.stringify(prices_list));
-        setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
-        setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
-        setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
+          // Get the list of tickers
+          if (!localStorage.getItem("equity_list")) {
+              const data = await get_tickers_equity();
+              localStorage.setItem("equity_list", JSON.stringify(data.tickers));
+          }
+          if (!localStorage.getItem("commodities_list")) {
+              const data = await get_tickers_commodities();
+              localStorage.setItem("commodities_list", JSON.stringify(data.tickers));
+          }
+          if (!localStorage.getItem("t_notes_list")) {
+              const data = await get_tickers_t_notes();
+              localStorage.setItem("t_notes_list", JSON.stringify(data.tickers));
+          }
+          if (!localStorage.getItem("reit_list")) {
+              const data = await get_tickers_reit();
+              localStorage.setItem("reit_list", JSON.stringify(data.tickers));
+          }
+          if (!localStorage.getItem("crypto_list")) {
+            const data = await get_tickers_crypto();
+            localStorage.setItem("crypto_list", JSON.stringify(data.tickers));
+          }
+          setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
+          
+          // Get data for all the tickers
+          let prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("equity_list"))));
+          localStorage.setItem("equity_list_data", JSON.stringify(prices_list));
+          prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("commodities_list"))));
+          localStorage.setItem("commodities_list_data", JSON.stringify(prices_list));
+          prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("t_notes_list"))));
+          localStorage.setItem("t_notes_list_data", JSON.stringify(prices_list));
+          prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("reit_list"))));
+          localStorage.setItem("reit_list_data", JSON.stringify(prices_list));
+          prices_list = await get_tickers_data(Object.keys(JSON.parse(localStorage.getItem("crypto_list"))));
+          localStorage.setItem("crypto_list_data", JSON.stringify(prices_list));
+          setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
+          setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
+          setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
 
-        localStorage.setItem("tickers_list_last_updated", currentTime.toISOString());
+          localStorage.setItem("tickers_list_last_updated", currentTime.toISOString());
         } else {
-        setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
-        setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
-        setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
-        setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
+          setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
+          setCheckedItems(Object.keys(JSON.parse(localStorage.getItem(`${current_selection}_list`))));
+          setTickersTableData(JSON.parse(localStorage.getItem(`${current_selection}_list_data`)).table_data);
+          setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
         }
         setAdding_loading(false);
     };
     useEffect(() => {
         if (should_get_tickers.current) {
-        should_get_tickers.current = false;
-        get_tickers_table_data();
+          should_get_tickers.current = false;
+          get_tickers_table_data();
         }
     }, [currentSelection]);
     
@@ -258,40 +250,6 @@ const Home = () => {
             navigate("/results");
         }
         setAnalysing(false);
-    };
-    const chartData = {
-        labels: ["January", "February", "March", "April", "May", "June"],
-        datasets: [
-        {
-            label: "Ticker Price",
-            data: [65, 59, 80, 81, 56, 55],
-            fill: false,
-            borderColor: "rgb(75, 192, 192)",
-            tension: 0,
-            pointRadius: 0,
-        },
-        ],
-    };
-
-    const chartOptions = {
-        plugins: {
-        legend: {
-            display: false,
-        },
-        },
-        scales: {
-        x: {
-            grid: {
-            display: false,
-            },
-        },
-        y: {
-            grid: {
-            display: false,
-            },
-        },
-        },
-        maintainAspectRatio: false,
     };
     const getClassByValue = (value) => {
         if (parseFloat(value) > 0) {
@@ -468,6 +426,20 @@ const Home = () => {
     setCbmscr(cbms.current - crypto_bucket_min_weight);
   }, [equity_bucket_min_weight, commodities_bucket_min_weight, t_notes_bucket_min_weight, reit_bucket_min_weight, crypto_bucket_min_weight])
 
+  var data = [
+    {
+      x: data_x,
+      y: data_y,
+      type: 'scatter'
+    }
+  ];
+  var data_v = [
+    {
+      x: data_x_v,
+      y: data_y_v,
+      type: 'scatter'
+    }
+  ]
   return (
     <div className={style.home_container}>
       {analysing && (
@@ -872,12 +844,6 @@ const Home = () => {
           </div>
           <div className={style.home_chart}>
             {selected_ticker && <h2 style={{ margin: "0" }}>{selected_ticker[1]}</h2>}
-            <div className={style.home_chart_price}>
-              <Line data={chartData} options={chartOptions} />
-            </div>
-            <div className={style.home_chart_price}>
-              <Line data={chartData} options={chartOptions} />
-            </div>
             <div className={style.home_chart_add_to_bucket}>
               <form onSubmit={handleAddToBucket}>
                 <div className={style.home_chart_add_to_bucket_form}>
@@ -887,7 +853,9 @@ const Home = () => {
                       type="number"
                       value={minimum_weight}
                       min="0"
-                      onChange={(e) => setMinimumWeight(parseInt(e.target.value))}
+                      onChange={(e) => {
+                        setMinimumWeight(parseInt(Math.max(minimum_weight, Math.min(e.target.value, 100 - cms.current))))
+                      }}
                       max={100 - cms.current}
                       placeholder="0"
                       required={true}
@@ -908,6 +876,12 @@ const Home = () => {
                   <button type="submit">Add to Bucket</button>
                 </div>
               </form>
+            </div>
+            <div className={style.home_chart_price}>
+              <Plot data = {data} layout = {{width: 670, height: 500, title: selected_ticker ? selected_ticker[1] + ' Price Data' : 'Price Data'}}/>
+            </div>
+            <div className={style.home_chart_price}>
+              <Plot data = {data_v} layout = {{width: 670, height: 500, title: selected_ticker ? selected_ticker[1] + ' Volatility Data' : 'Volatility Data'}}/>
             </div>
           </div>
         </div>

@@ -40,7 +40,7 @@
     align-items: center;
     width: 100%;
 }
-.home_table, .home_chart {
+.home_table {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -49,16 +49,21 @@
     margin: 10px 20px 10px 20px;
 }
 .home_chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 50%;
     border: 1px solid #ddd;
+    margin: 10px 20px 10px 20px;
     height: 77vh;
     overflow-y: scroll;
-    padding: 10px 10px 10px 10px;
+    padding: 30px 10px 10px 10px;
 }
 
 .home_chart_price, .home_chart_volatility {
-    margin: 20px 0px 20px 0px;
-    width: 100%;
-    height: 200px;
+    /* margin: 20px 0px 20px 0px; */
+    width: 670px;
+    height: 500px;
 }
 Link {
     margin: 0;

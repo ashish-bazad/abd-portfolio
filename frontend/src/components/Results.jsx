@@ -44,7 +44,7 @@ const Results = () => {
     let results = JSON.parse(localStorage.getItem('results'));
     if(tmp) {
         setTmp(false);
-        // console.log(results);
+        console.log(results);
     }
     const handleOptionChange = (event) => {
         setSelectedOption(event.target.value);

@@ -41,7 +41,7 @@ crypto_tickers = {
     'FRAX-USD': 'Frax',
     'FTM-USD': 'Fantom',
     'RPL-USD': 'Rocket Pool',
-    'BTT-USD': 'BitTorrent',
+    # 'BTT-USD': 'BitTorrent',
     'HT-USD': 'Huobi Token',
     'LUNC-USD': 'Terra Classic',
     'TUSD-USD': 'TrueUSD',
