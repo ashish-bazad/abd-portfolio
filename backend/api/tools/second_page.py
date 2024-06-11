@@ -219,5 +219,6 @@ def initialize(stocks_list, start_date, end_date, benchmark_ticker, market_ticke
     result_dict['information_ratio'] = information_ratio
     result_dict['benchmark_value'] = benchmark_value
     result_dict['correlation_matrix'] = correlation_matrix
+    result_dict['date'] = portfolio_value.reset_index()['Date']
 
     return result_dict
