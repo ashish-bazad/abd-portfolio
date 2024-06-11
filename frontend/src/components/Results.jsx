@@ -27,7 +27,6 @@ const Results = () => {
     }, [navigate])
     let results = JSON.parse(localStorage.getItem(`results_${selectedOption}`));
     useEffect(() => {
-        console.log(results)
         setData_p_x(results.date)
         setData_p_y(results.portfolio_value)
         setData_b_y(results.benchmark_value)

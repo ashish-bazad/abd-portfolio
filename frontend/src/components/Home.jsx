@@ -457,6 +457,7 @@ const Home = () => {
                     <span className={style.closeButton} onClick={() => setAnalysisOptions(false)}>ⓧ</span>
                     <div className={style.analysis_options}>
                         <form onSubmit={loadResults}>
+                        <label style={{ fontWeight: "bold", fontSize: "14px", color:'red' }}>Difference between Start Date and End Date must be at least 52 Days for the results to load!</label>
                             <div className={style.analysis_options_input}>
                                 <label style={{ fontWeight: "bold", fontSize: "14px" }}>Start Date : </label>
                                 <input type="date" id="start_date" required={true} />

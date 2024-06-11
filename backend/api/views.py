@@ -163,4 +163,5 @@ def analyze_data(request):
     result_dict = second_page.initialize(tickers_list, start_date, end_date, benchmark_ticker, market_ticker, initial_amount, number_of_simulations, portfolio_minimum_weights, portfolio_maximum_weights, buckets_minimum_weights, buckets_maximum_weights)
     result_dict2 = second_page.equal_weighting(tickers_list, start_date, end_date, benchmark_ticker, market_ticker, initial_amount)
     result_dict3 = second_page.risk_parity(tickers_list, start_date, end_date, benchmark_ticker, market_ticker, initial_amount)
+    
     return Response({"results_0": result_dict, "results_1": result_dict2, "results_2": result_dict3}, status=status.HTTP_200_OK)
