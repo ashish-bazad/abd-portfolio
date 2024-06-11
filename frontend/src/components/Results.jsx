@@ -4,24 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Plot from 'react-plotly.js';
 
 const Results = () => {
-    let [selectedOption, setSelectedOption] = useState('option1');
-    let cbms = useRef(0)
-    let [cbmse, setCbmse] = useState(0);
-    let [cbmsc, setCbmsc] = useState(0);
-    let [cbmst, setCbmst] = useState(0);
-    let [cbmsr, setCbmsr] = useState(0);
-    let [cbmscr, setCbmscr] = useState(0);
-    let cabms = useRef([0, 0, 0, 0, 0]);
-    let [equity_bucket_min_weight, setEquityBucketMinWeight] = useState(null);
-    let [equity_bucket_max_weight, setEquityBucketMaxWeight] = useState(100);
-    let [commodities_bucket_min_weight, setCommoditiesBucketMinWeight] = useState(null);
-    let [commodities_bucket_max_weight, setCommoditiesBucketMaxWeight] = useState(100);
-    let [t_notes_bucket_min_weight, setT_notesBucketMinWeight] = useState(null);
-    let [t_notes_bucket_max_weight, setT_notesBucketMaxWeight] = useState(100);
-    let [reit_bucket_min_weight, setReitBucketMinWeight] = useState(null);
-    let [reit_bucket_max_weight, setReitBucketMaxWeight] = useState(100);
-    let [crypto_bucket_min_weight, setCryptoBucketMinWeight] = useState(null);
-    let [crypto_bucket_max_weight, setCryptoBucketMaxWeight] = useState(100);
+    let [selectedOption, setSelectedOption] = useState(0);
     let [data_p_x, setData_p_x] = useState(['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00']);
     let [data_p_y, setData_p_y] = useState([1, 3, 6]);
     let [data_b_y, setData_b_y] = useState([1, 3, 6]);
@@ -32,32 +15,30 @@ const Results = () => {
     });
     let [pie_values, setPie_values] = useState([10, 20, 30, 40]);
     let [pie_labels, setPie_labels] = useState(['Equity', 'Commodities', 'T-Notes', 'REIT']);
+    let [pie_changes, setPie_changes] = useState([1, 2, 3, -1])
     const corr_data = Object.keys(data_corr).map(key => data_corr[key]);
     const labels = Object.keys(data_corr);
     const intext_label = Object.keys(data_corr).map(key => data_corr[key].map(value => value.toFixed(2)));
     const navigate = useNavigate();
     useEffect(() => {
-        if(!localStorage.getItem('results')) {
+        if(!localStorage.getItem(`results_${selectedOption}`)) {
             navigate('/');
         }
     }, [navigate])
-    let results = JSON.parse(localStorage.getItem('results'));
-    let should_set_data = useRef(true);
+    let results = JSON.parse(localStorage.getItem(`results_${selectedOption}`));
     useEffect(() => {
-        if(should_set_data.current) {
-            should_set_data.current = false;
-            console.log(results)
-            setData_p_x(results.date)
-            setData_p_y(results.portfolio_value)
-            setData_b_y(results.benchmark_value)
-            setData_m_y(results.var_monte_carlo_simulated_returns)
-            setData_corr(results.correlation_matrix)
-            setPie_values(results.optimised_weights)
-            setPie_labels(results.tickers_list)
-        }
-    }, [])
+        console.log(results)
+        setData_p_x(results.date)
+        setData_p_y(results.portfolio_value)
+        setData_b_y(results.benchmark_value)
+        setData_m_y(results.var_monte_carlo_simulated_returns)
+        setData_corr(results.correlation_matrix)
+        setPie_values(results.optimised_weights)
+        setPie_labels(results.tickers_list)
+        setPie_changes(results.capital_gain_per)
+    }, [selectedOption])
     const handleOptionChange = (event) => {
-        setSelectedOption(event.target.value);
+        setSelectedOption(parseInt(event.target.value));
     };
     var data_portfolio_value = [
         {
@@ -65,7 +46,6 @@ const Results = () => {
           y: data_p_y,
           type: 'scatter',
           line: { color: '#1e90ff' },
-        //   xbins: {size: 0.02},
         }
     ];
     var data_benchmark_value = [
@@ -113,17 +93,38 @@ const Results = () => {
             type: 'pie',
         }
     ]
+    const getColor = (value) => {
+        if(value > 0) return 'green';
+        else if(value < 0) return 'red';
+        else return 'black';
+    }
+    var tree_data = [
+        {
+            type: 'treemap',
+            labels: pie_labels,
+            parents: Array(pie_labels.length).fill(''),
+            values: pie_values,
+            text: pie_labels.map((label, index) => `<b>${label}</b><br>Weight: ${pie_values[index].toFixed(3)}<br>Change: ${pie_changes[index].toFixed(3)}%`),
+            // textinfo: "label+value+percent parent+percent entry",
+            texttemplate: "%{text}",
+            hovertemplate: "%{text}",
+            marker: {
+                colors: pie_changes.map(change => getColor(change))
+            }
+        }
+    ]
 
     return (
     <div className={style.results_container}>
         <div className={style.results}>
+        <button className={style.results_back_button} style={{width:'100px', height:'30px', border:'none', borderRadius:'3px', backgroundColor:'rgb(0, 103, 184)', color:'white', fontSize:'14px', fontWeight:'bold'}} onClick={() => navigate('/')}>Back</button>
             <div className={style.results_mode_selector}>
                 <label style={{ fontWeight: 'bold' }}>Asset Allocation Strategy:</label>
                     <label>
                         <input
                             type="radio"
-                            value="option1"
-                            checked={selectedOption === 'option1'}
+                            value={0}
+                            checked={selectedOption === 0}
                             onChange={handleOptionChange}
                         />
                         Markowitz Mean-Variance
@@ -131,8 +132,8 @@ const Results = () => {
                     <label>
                         <input
                             type="radio"
-                            value="option2"
-                            checked={selectedOption === 'option2'}
+                            value={1}
+                            checked={selectedOption === 1}
                             onChange={handleOptionChange}
                         />
                         Equal Weighting
@@ -140,45 +141,13 @@ const Results = () => {
                     <label>
                         <input
                             type="radio"
-                            value="option3"
-                            checked={selectedOption === 'option3'}
+                            value={2}
+                            checked={selectedOption === 2}
                             onChange={handleOptionChange}
                         />
                         Risk Parity
                     </label>
             </div>
-
-
-            <div className={style.results_exposure_limits}>
-                <label style={{fontWeight:'bold'}}>Exposure Limits</label>
-                <div className={style.results_exposure_limits_items}>
-                    <div className={style.results_exposure_limits_item}>
-                        <select defaultValue={0} >
-                            <option value={0} disabled={true}>Select Bucket</option>
-                            <option value="option1">Bucket 1</option>
-                            <option value="option2">Bucket 2</option>
-                            <option value="option3">Bucket 3</option>
-                        </select>
-                        <div className={style.results_exposure_limits_item_input}>
-                            <input type='number' placeholder = 'Minimum Weight' min={0.00} max={1.00} step={0.01} />
-                            <input type='number' placeholder = 'Maximum Weight' min={0.00} max={1.00} step={0.01} />
-                        </div>
-                    </div>
-                    <div className={style.results_exposure_limits_item}>
-                        <select defaultValue={0}>
-                            <option value={0} disabled={true}>Select Stock</option>
-                            <option value="option1">Stock 1</option>
-                            <option value="option2">Stock 2</option>
-                            <option value="option3">Stock 3</option>
-                        </select>
-                        <div className={style.results_exposure_limits_item_input}>
-                            <input type='number' placeholder = 'Minimum Weight' min={0.00} max={1.00} step={0.01} />
-                            <input type='number' placeholder = 'Maximum Weight' min={0.00} max={1.00} step={0.01} />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
 
             <div className={style.results_portfolio_value}>
                 <label style={{fontWeight:'bold'}}>Portfolio Value</label>
@@ -272,7 +241,7 @@ const Results = () => {
                         <div className={style.portfolio_value_evaluation_item_data}>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
                                 <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.p_capital_gain.toFixed(3)}</label>
-                                <label style={{fontWeight:'bold', margin:'0'}}>Portfolio Returns (%)</label>
+                                <label style={{fontWeight:'bold', margin:'0'}}>Annual Returns (%)</label>
                             </div>
                             <div className={style.portfolio_value_evaluation_item_data_item}>
                                 <label style={{fontSize:'20px', margin:'0', color:'rgb(34, 103, 196)'}}>{results.portfolio_std.toFixed(3)}</label>
@@ -332,7 +301,7 @@ const Results = () => {
                             <Plot
                             data = {data_benchmark_value}
                             layout={{
-                                width: 480,
+                                width: 510,
                                 height: 180,
                                 margin: {
                                     l: 30,
@@ -372,7 +341,7 @@ const Results = () => {
                         <Plot
                             data = {data_monte_carlo_value}
                             layout={{
-                                width: 480,
+                                width: 510,
                                 height: 180,
                                 margin: {
                                     l: 30,
@@ -413,7 +382,7 @@ const Results = () => {
                         <Plot
                             data = {correlation_data}
                             layout={{
-                                width: 630,
+                                width: 680,
                                 height: 585,
                                 margin: {
                                     l: 100,
@@ -434,7 +403,24 @@ const Results = () => {
                 <div className={style.split_view_item}>
                     <label style={{fontWeight:'bold'}}>Portfolio Heatmap View</label>
                     <div className={style.split_view_chart_2}>
-                        {/* <Line data={chartData} options={chartOptions} /> */}
+                    <Plot
+                            data = {tree_data}
+                            layout={{
+                                width: 680,
+                                height: 585,
+                                margin: {
+                                    l: 10,
+                                    r: 10,
+                                    t: 10,
+                                    b: 10,
+                                  },
+                            }}
+                            config={{
+                                scrollZoom: true,
+                                responsive: true,
+                                displaylogo: false,
+                            }}
+                        />
                     </div>
                 </div>
             </div>

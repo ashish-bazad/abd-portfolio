@@ -48,7 +48,9 @@ export const AuthProvider = ({children}) => {
         }))
         if(response.status === 200) {
             const data = await response.json()
-            localStorage.setItem('results', JSON.stringify(data.results));
+            localStorage.setItem('results_0', JSON.stringify(data.results_0));
+            localStorage.setItem('results_1', JSON.stringify(data.results_1));
+            localStorage.setItem('results_2', JSON.stringify(data.results_2));
             return true;
         } else {
             return false

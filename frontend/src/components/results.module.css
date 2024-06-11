@@ -24,35 +24,8 @@
     gap: 10px;
 }
 
-.results_exposure_limits_items {
-    display: flex;
-    align-content: center;
-    gap: 100px;
-}
-.results_exposure_limits {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 5px;
-}
-.results_exposure_limits_item {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-}
-.results_exposure_limits select {
-    width: 120px;
-}
-.results_exposure_limits input {
-    width: 120px;
-}
-.results_exposure_limits_item_input {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
 .results_portfolio_value_evaluation_and_parameters {
+    margin-top: 30px;
     display: flex;
     width: 100%;
     align-items: center;
@@ -88,10 +61,9 @@
 }
 .results_portfolio_value_data_right {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     width: 30%;
-    /* border: 1px solid #ddd */
 }
 .results_portfolio_value_chart {
     width: 69%;
@@ -99,7 +71,6 @@
     border: 1px solid #ddd;
 }
 .results_portfolio_value_pie_chart {
-    /* border: 1px solid #ddd; */
     height: 25vh;
     width: 65%;
 }
@@ -120,6 +91,7 @@
     display: flex;
     gap: 100px;
     justify-content: space-between;
+    gap: 20px;
 }
 .split_view_item {
     display: flex;
