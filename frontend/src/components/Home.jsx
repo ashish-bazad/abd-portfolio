@@ -51,6 +51,12 @@ const Home = () => {
     let [data_x_v, setData_x_v] = useState(['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00']);
     let [data_y_v, setData_y_v] = useState([1, 3, 6]);
     let [analysing, setAnalysing] = useState(false);
+    let volatility_chart_parent_div = useRef(null);
+    let price_chart_parent_div = useRef(null);
+    let should_update_dimensions = useRef(true);
+    let [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    let [dimensionsP, setDimensionsP] = useState({ width: 0, height: 0 });
+    let should_update_height = useRef(true);
     const navigate = useNavigate();
 
     var current_selection = "equity";
@@ -435,20 +441,96 @@ const Home = () => {
       type: 'scatter'
     }
   ]
+  useEffect(() => {
+    const homeChartContainer = document.getElementById('home_chart');
+    const priceChartContainer = document.getElementById('priceChartContainer');
+    const volatilityChartContainer = document.getElementById('volatilityChartContainer');
+
+    const stopPropagation = (e) => {
+      e.stopPropagation();
+    };
+
+    const addScrollListener = () => {
+      homeChartContainer.addEventListener('wheel', stopPropagation, { passive: false });
+    };
+
+    const removeScrollListener = () => {
+      homeChartContainer.removeEventListener('wheel', stopPropagation, { passive: false });
+    };
+
+    priceChartContainer.addEventListener('mouseenter', addScrollListener);
+    priceChartContainer.addEventListener('mouseleave', removeScrollListener);
+    volatilityChartContainer.addEventListener('mouseenter', addScrollListener);
+    volatilityChartContainer.addEventListener('mouseleave', removeScrollListener);
+
+    return () => {
+      priceChartContainer.removeEventListener('mouseenter', addScrollListener);
+      priceChartContainer.removeEventListener('mouseleave', removeScrollListener);
+      volatilityChartContainer.removeEventListener('mouseenter', addScrollListener);
+      volatilityChartContainer.removeEventListener('mouseleave', removeScrollListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (volatility_chart_parent_div.current) {
+        const rect = volatility_chart_parent_div.current.getBoundingClientRect();
+        setDimensions({ width: rect.width - 2, height: rect.height - 2 });
+      }
+      if(price_chart_parent_div.current) {
+        const rect = price_chart_parent_div.current.getBoundingClientRect();
+        setDimensionsP({ width: rect.width - 2, height: (rect.height - 2) });
+      }
+    };
+
+    if(should_update_dimensions.current) {
+      should_update_dimensions.current = false;
+      updateDimensions();
+    }
+
+    window.addEventListener('resize', updateDimensions);
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateHeight = () => {
+      if(volatility_chart_parent_div.current) {
+        const width = volatility_chart_parent_div.current.offsetWidth;
+        volatility_chart_parent_div.current.style.height = `${width / 3}px`
+      }
+      if(price_chart_parent_div.current) {
+        const width = price_chart_parent_div.current.offsetWidth;
+        price_chart_parent_div.current.style.height = `${width / 2}px`
+      }
+    };
+
+    if(should_update_height.current) {
+      should_update_height.current = false;
+      updateHeight();
+    }
+
+    window.addEventListener('resize', updateHeight);
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+    }
+  }, [])
+
   return (
     <div className={style.home_container}>
       {analysing && (
-        <div className={style.bucket_container} style={{zIndex:'100'}}>
+        <div className={style.popup_container} style={{zIndex:'100'}}>
           <div className={style.loading}>
             <h1>Processing...</h1>
           </div>
         </div>
       )}
       {analysis_options && (
-            <div className={style.bucket_container} onClick={() => setAnalysisOptions(false)}>
-                <div className={style.bucket} onClick={(e) => e.stopPropagation()}>
-                    <div className={style.settings_header}>
-                        <h2>Analysis Options</h2>
+            <div className={style.popup_container} onClick={() => setAnalysisOptions(false)}>
+                <div className={style.popup} onClick={(e) => e.stopPropagation()}>
+                    <div className={style.popup_header}>
+                        <h2>Simulation Parameters</h2>
                     </div>
                     <span className={style.closeButton} onClick={() => setAnalysisOptions(false)}>ⓧ</span>
                     <div className={style.analysis_options}>
@@ -587,7 +669,7 @@ const Home = () => {
                                     required={true} />
                                 </div>
                             )}
-                            <button type="submit" className={style.settings_apply}>Analyze</button>
+                            <button type="submit" className={style.popup_proceed}>Analyze</button>
                         </form>
                     </div>
                 </div>
@@ -595,11 +677,11 @@ const Home = () => {
         )}
       {showSettings && (
         <div
-          className={style.bucket_container}
+          className={style.popup_container}
           onClick={() => setShowSettings(false)}
         >
-          <div className={style.bucket} onClick={(e) => e.stopPropagation()}>
-            <div className={style.settings_header}>
+          <div className={style.popup} onClick={(e) => e.stopPropagation()}>
+            <div className={style.popup_header}>
               <h2>Settings</h2>
             </div>
             <div className={style.settings_options}>
@@ -637,7 +719,7 @@ const Home = () => {
               )}
               {tperiod !== period && (
                 <button
-                  className={style.settings_apply}
+                  className={style.popup_proceed}
                   onClick={() => {
                     localStorage.setItem("period", tperiod);
                     localStorage.removeItem(`${current_selection}_list_data`);
@@ -653,10 +735,10 @@ const Home = () => {
       )}
       {show_bucket && (
         <div
-          className={style.bucket_container}
+          className={style.popup_container}
           onClick={() => setShowBucket(false)}
         >
-          <div className={style.bucket} onClick={(e) => e.stopPropagation()}>
+          <div className={style.popup} onClick={(e) => e.stopPropagation()}>
             <div className={style.bucket_header}>
               <h2>Bucket</h2>
             </div>
@@ -835,7 +917,7 @@ const Home = () => {
               </table>
             </div>
           </div>
-          <div className={style.home_chart}>
+          <div className={style.home_chart} id="home_chart">
             {selected_ticker && <h2 style={{ margin: "0" }}>{selected_ticker[1]}</h2>}
             <div className={style.home_chart_add_to_bucket}>
               <form onSubmit={handleAddToBucket}>
@@ -866,20 +948,20 @@ const Home = () => {
                       required={true}
                     />
                   </div>
-                  <button type="submit">Add to Bucket</button>
+                  <button type="submit" style={{width:'150px'}}>Add to Bucket</button>
                 </div>
               </form>
             </div>
             <label style={{fontWeight:'bold'}}>Price Chart</label>
-            <div className={style.home_chart_price}>
+            <div className={style.home_chart_price} id="priceChartContainer" ref={price_chart_parent_div}>
               <Plot
                 data = {data.map(trace => ({...trace, line: {color: '#1e90ff'}}))}
                 layout = {{ 
-                  width: 660,
-                  height: 300,
+                  width: dimensionsP.width,
+                  height: dimensionsP.height,
                   margin: {
                     l: 40,
-                    r: 40,
+                    r: 0,
                     t: 0,
                     b: 20,
                   }
@@ -892,16 +974,16 @@ const Home = () => {
               />
             </div>
             <label style={{fontWeight:'bold'}}>Volatility Chart</label>
-            <div className={style.home_chart_price}>
+            <div className={style.home_chart_volatility} id="volatilityChartContainer" ref={volatility_chart_parent_div}>
               <Plot
                 data = {data_v.map(trace => ({ ...trace, line: { color: '#228b22' } }))}
                 layout = {{
-                  width: 660, 
-                  height: 220, 
+                  width: dimensions.width, 
+                  height: dimensions.height, 
                   margin: {
                     l: 40,
-                    r: 40,
-                    t: 10,
+                    r: 0,
+                    t: 0,
                     b: 0,
                   },
                 }}
@@ -915,11 +997,11 @@ const Home = () => {
           </div>
         </div>
         <div className={style.controller_buttons}>
-          <button className={style.home_chart_next} style={{ width: "100px" }} onClick={() => setShowSettings(true)}>Settings</button>
-          <button className={style.home_chart_next} style={{ width: "150px" }} onClick={() => {localStorage.removeItem(`${current_selection}_list`);window.location.reload();}}>Reset Tickers List</button>
-          <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => {localStorage.setItem(`${current_selection}_bucket`, JSON.stringify([]));window.location.reload();}}>Reset Bucket</button>
-          <button className={style.home_chart_next} style={{ width: "120px" }} onClick={() => setShowBucket(true)} >View Bucket</button>
-          <button className={style.home_chart_next} onClick={() => setAnalysisOptions(true)}>Next</button>
+          <button className={style.controller_buttons_buttons} style={{ width: "100px" }} onClick={() => setShowSettings(true)}>Settings</button>
+          <button className={style.controller_buttons_buttons} style={{ width: "150px" }} onClick={() => {localStorage.removeItem(`${current_selection}_list`);window.location.reload();}}>Reset Tickers List</button>
+          <button className={style.controller_buttons_buttons} style={{ width: "120px" }} onClick={() => {localStorage.setItem(`${current_selection}_bucket`, JSON.stringify([]));window.location.reload();}}>Reset Bucket</button>
+          <button className={style.controller_buttons_buttons} style={{ width: "120px" }} onClick={() => setShowBucket(true)} >View Bucket</button>
+          <button className={style.controller_buttons_buttons} onClick={() => setAnalysisOptions(true)}>Next</button>
         </div>
       </div>
     </div>

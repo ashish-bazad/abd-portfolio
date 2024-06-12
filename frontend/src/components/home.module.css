@@ -7,7 +7,7 @@
     height: 100%;
 }
 .home {
-    max-width: 1440px;
+    max-width: 1600px;
     width: 100%;
     height: 100%;
     display: flex;
@@ -28,50 +28,67 @@
     border: 5px solid white;
 }
 .home_table_navbar_item h2 {
-    margin-bottom: 20px;
+    margin: 10px;
 }
 .home_table_navbar_item :hover {
     cursor: pointer;
 }
 
+.search_div {
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    width: 350px;
+    height: fit-content;
+    position: relative;
+    margin: 0;
+    padding-right: 10px;
+}
+.home_table_search {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin: 20px 0px 20px 0px;
+    position: relative;
+}
+.home_table_search label {
+    font-weight: bold;
+}
+.home_table_search input {
+    width: 310px;
+    height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 16px;
+}
+.clear_button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    position: absolute;
+    right: 5px;
+}
+.clear_button:hover {
+    color: red;
+}
 
 .home_table_and_chart {
     display: flex;
     align-items: center;
     width: 100%;
 }
+
 .home_table {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 50%;
-    margin: 10px 10px 10px 20px;
+    margin: 10px 0px 10px 20px;
 }
-.home_chart {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 50%;
-    border: 1px solid #ddd;
-    margin: 10px 20px 10px 0px;
-    height: 77vh;
-    overflow-y: scroll;
-    padding: 20px 10px 10px 10px;
-    gap: 10px;
-}
-
-.home_chart_price, .home_chart_volatility {
-    /* margin: 20px 0px 20px 0px; */
-    /* width: 670px; */
-    /* height: 500px; */
-    border: 1px solid #ddd;
-
-}
-Link {
-    margin: 0;
-}
-
 table {
     font-weight: bold;
     width: 100%;
@@ -80,9 +97,12 @@ table {
 }
 .table_container {
     width: 100%;
-    height: 70vh;
+    height: 73.3vh;
+    max-height: 733;
     overflow-y: auto;
-    border: 1px solid #ddd;
+    /* border: 1px solid #ddd; */
+    border-radius: 5px;
+    padding-right: 10px;
 }
 th {
     z-index: 1;
@@ -102,40 +122,97 @@ td input {
     width: 20px;
     height: 20px;
 }
-
 .table_symbol {
     color: rgb(34, 103, 196);
     font-weight: bold;
 }
 .table_symbol:hover {
     cursor: pointer;
-
 }
 .positive {
     color: green;
 }
-
 .negative {
     color: red;
 }
-
-.home_table_search {
+.table_range {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+.table_range_length {
+    width: 90%;
+    border-radius: 15px;
+    height: 2px;
+    background-color: red;
+}
+.table_range_fill {
+    z-index: 1;
+    height: 2px;
+    background-color: green;
+}
+.table_range_label {
+    width: 100%;
+    font-size: 10px;
+    font-weight: normal;
     display: flex;
     justify-content: space-between;
+    gap: 10px
+}
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+.slideIn {
+    animation: slideIn 0.3s ease forwards;
+}
+.slideOut {
+    animation: slideOut 0.3s ease forwards;
+}
+
+.home_chart {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    width: 100%;
-    margin: 20px 0px 20px 0px;
-}
-.home_table_search label {
-    font-weight: bold;
-}
-.home_table_search input {
-    width: 310px;
-    height: 30px;
-    border: 1px solid #ddd;
+    width: 50%;
+    /* border: 1px solid #ddd; */
     border-radius: 5px;
-    padding: 5px;
-    font-size: 16px;
+    margin: 10px 20px 10px 0px;
+    height: 79vh;
+    max-height: 800px;
+    overflow-y: scroll;
+    padding: 20px 10px 10px 10px;
+    gap: 10px;
+}
+.home_chart_price, .home_chart_volatility {
+    border: 1px solid #ddd;
+}
+.home_chart_price {
+    width: 99%;
+    height: 300px;
+}
+.home_chart_volatility {
+    width: 99%;
+    height: 220px;
 }
 
 .home_chart_add_to_bucket {
@@ -143,6 +220,7 @@ td input {
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    max-width: 700px;
     margin: 10px 0px 20px 0px;
 }
 .home_chart_add_to_bucket_form {
@@ -173,122 +251,6 @@ form {
     width: 100px;
     font-size: 14px;
 }
-form button {
-    height: 40px;
-    width: 150px;
-    background-color: rgb(0, 103, 184);
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-weight: bold;
-    font-size: 14px;
-}
-.home_chart_next {
-    height: 40px;
-    width: 80px;
-    background-color: rgb(0, 103, 184);
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-
-.selected {
-    color: rgb(34, 103, 196);
-    border-bottom: 5px solid rgb(34, 103, 196);
-    transition: border-bottom 0.3s ease;
-}
-
-.clear_button {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    /* transition: opacity 0.3s ease, transform 0.3s ease; */
-    opacity: 0;
-    position: absolute;
-    right: 5px;
-    /* transform: translateX(100%); */
-  }
-  
-.clear_button:hover {
-    color: red; /* Change color on hover */
-}
-.home_table_search {
-    position: relative;
-}
-
-.search_div {
-    display: flex;
-    justify-content: right;
-    align-items: center;
-    width: 350px;
-    height: fit-content;
-    position: relative;
-    margin: 0;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-  
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-  
-.slideIn {
-    animation: slideIn 0.3s ease forwards;
-}
-  
-.slideOut {
-    animation: slideOut 0.3s ease forwards;
-}
-  
-
-.table_range {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
-
-}
-.table_range_length {
-    width: 90%;
-    border-radius: 15px;
-    height: 2px;
-    background-color: red;
-}
-.table_range_fill {
-    z-index: 1;
-    height: 2px;
-    background-color: green;
-}
-.table_range_label {
-    width: 100%;
-    font-size: 10px;
-    font-weight: normal;
-    display: flex;
-    justify-content: space-between;
-    gap: 10px
-}
-
 .controller_buttons {
     display: flex;
     align-items: center;
@@ -298,8 +260,27 @@ form button {
     height: 100%;
     margin-top: 10px;
 }
+.controller_buttons_buttons, form button {
+    height: 40px;
+    width: 80px;
+    background-color: rgb(0, 103, 184);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.controller_buttons_buttons:hover, form button:hover{
+    background-color: rgb(3, 85, 148);
+    cursor: pointer;
+}
+.selected {
+    color: rgb(34, 103, 196);
+    border-bottom: 5px solid rgb(34, 103, 196);
+    transition: border-bottom 0.3s ease;
+}
 
-.bucket_container {
+.popup_container {
     left: 0;
     top: 0;
     width: 100%;
@@ -310,16 +291,17 @@ form button {
     z-index: 3;
     position: fixed;
     background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
 }
-.bucket {
+.popup {
     width: 50%;
-    height: 50%;
+    height: 90%;
     background-color: white;
-    border-radius: 10px;
+    border-radius: 5px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* justify-content: center; */
     padding: 20px;
     position: relative;
 }
@@ -333,6 +315,7 @@ form button {
     cursor: pointer;
     color: red;
 }
+
 .bucket_table {
     width: 80%;
     height: 100%;
@@ -354,8 +337,10 @@ form button {
     width: 50%;
     margin: 20px 0px 20px 0px;
 }
-.settings_apply {
-    margin: 30px 30px 30px 15px;
+.popup_header h2 {
+    margin: 0;
+}
+.popup_proceed {
     width: 80px;
     height: 30px;
     background-color: #3aaf19;
@@ -364,7 +349,7 @@ form button {
     border-radius: 5px;
     font-size: 14px;
 }
-.settings_apply:hover {
+.popup_proceed:hover {
     background-color: #3dbe1a;
     cursor: pointer;
 }
@@ -391,10 +376,13 @@ form button {
     flex-direction: column;
     gap: 10px;
     align-items: center;
-    width: 70%;
-    margin: 20px 0px 20px 0px;
-    padding: 20px;
+    width: 85%;
+    margin: 0px 0px 20px 0px;
+    padding: 10px 20px 20px 20px;
     overflow-y: scroll;
+}
+.analysis_options form {
+    padding-right: 10px;
 }
 .analysis_options_input {
     display: flex;
@@ -407,5 +395,4 @@ form button {
     display: flex;
     justify-content: center;
     align-items: center;
-    
 }
