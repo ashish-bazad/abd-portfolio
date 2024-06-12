@@ -267,7 +267,7 @@ const Home = () => {
 
     const search_ticker = async (text) => {
         const response = await fetch(
-        `http://127.0.0.1:8000/api/search_${current_selection}/?search=${text}`,
+        `https://abd-portfolio.onrender.com/api/search_${current_selection}/?search=${text}`,
         );
         const data = await response.json();
         setSearchedTickers(data.tickers);
