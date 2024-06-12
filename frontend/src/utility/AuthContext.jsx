@@ -4,28 +4,37 @@ export default AuthContext;
 
 export const AuthProvider = ({children}) => {
 
+    const api_path = 'https://abd-portfolio.onrender.com/api';
+
     const get_tickers_equity = async() => {
-        const response = await(fetch('https://abd-portfolio.onrender.com/api/tickers_equity/'));
+        const response = await(fetch(`${api_path}/tickers_equity/`));
         const data = await response.json();
         return data;
     }
+    const search_tickers = async (text) => {
+        const response = await fetch(
+        `https://abd-portfolio.onrender.com/api/search_${current_selection}/?search=${text}`,
+        );
+        const data = await response.json();
+        return data;
+    };
     const get_tickers_commodities = async() => {
-        const response = await(fetch('https://abd-portfolio.onrender.com/api/tickers_commodities/'));
+        const response = await(fetch(`${api_path}/tickers_commodities/`));
         const data = await response.json();
         return data;
     }
     const get_tickers_crypto = async() => {
-        const response = await(fetch('https://abd-portfolio.onrender.com/api/tickers_crypto/'));
+        const response = await(fetch(`${api_path}/tickers_crypto/`));
         const data = await response.json();
         return data;
     }
     const get_tickers_t_notes = async() => {
-        const response = await(fetch('https://abd-portfolio.onrender.com/api/tickers_t_notes/'));
+        const response = await(fetch(`${api_path}/tickers_t_notes/`));
         const data = await response.json();
         return data;
     }
     const get_tickers_reit = async() => {
-        const response = await(fetch('https://abd-portfolio.onrender.com/api/tickers_reit/'));
+        const response = await(fetch(`${api_path}/tickers_reit/`));
         const data = await response.json();
         return data;
     }
@@ -34,12 +43,12 @@ export const AuthProvider = ({children}) => {
         if(period === null) {
             period = '1y';
         }
-        const response = await(fetch(`https://abd-portfolio.onrender.com/api/tickers_data/?tickers=${tickers.map(ticker => encodeURIComponent(ticker)).join(',')}&period=${period}`));
+        const response = await(fetch(`${api_path}/tickers_data/?tickers=${tickers.map(ticker => encodeURIComponent(ticker)).join(',')}&period=${period}`));
         const data = await response.json();
         return data;
     }
     const analyze_data = async(request_data) => {
-        const response = await(fetch(`https://abd-portfolio.onrender.com/api/data_analysis/`, {
+        const response = await(fetch(`${api_path}/data_analysis/`, {
             method:'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -65,7 +74,7 @@ export const AuthProvider = ({children}) => {
         get_tickers_reit,
         get_tickers_data,
         analyze_data,
-
+        search_tickers,
     }
     return (
         <AuthContext.Provider value = {contextData}>
