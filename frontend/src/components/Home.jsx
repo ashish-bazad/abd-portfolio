@@ -5,7 +5,7 @@ import Plot from 'react-plotly.js';
 import AuthContext from '../utility/AuthContext';
 
 const Home = () => {
-    let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data, analyze_data } = useContext(AuthContext);
+    let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data, analyze_data, search_tickers } = useContext(AuthContext);
     let should_get_tickers = useRef(true);
     let should_create_bucket = useRef(true);
     let cms = useRef(0);
@@ -214,7 +214,6 @@ const Home = () => {
     
     let loadResults = async (e) => {
         e.preventDefault();
-        // navigate("/results");
         setAnalysing(true);
         let start_date = document.getElementById("start_date").value;
         let end_date = document.getElementById("end_date").value;
@@ -266,10 +265,7 @@ const Home = () => {
     };
 
     const search_ticker = async (text) => {
-        const response = await fetch(
-        `https://abd-portfolio.onrender.com/api/search_${current_selection}/?search=${text}`,
-        );
-        const data = await response.json();
+        const data = await search_tickers(text, current_selection);
         setSearchedTickers(data.tickers);
     };
 
