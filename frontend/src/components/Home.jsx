@@ -265,7 +265,7 @@ const Home = () => {
     };
 
     const search_ticker = async (text) => {
-        const data = await search_tickers(text);
+        const data = await search_tickers(text, current_selection);
         setSearchedTickers(data.tickers);
     };
 

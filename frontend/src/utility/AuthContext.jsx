@@ -11,7 +11,7 @@ export const AuthProvider = ({children}) => {
         const data = await response.json();
         return data;
     }
-    const search_tickers = async (text) => {
+    const search_tickers = async (text, current_selection) => {
         const response = await fetch(`${api_path}/search_${current_selection}/?search=${text}`);
         const data = await response.json();
         return data;
