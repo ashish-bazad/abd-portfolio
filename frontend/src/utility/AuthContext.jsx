@@ -4,7 +4,7 @@ export default AuthContext;
 
 export const AuthProvider = ({children}) => {
 
-    const api_path = 'https://abd-portfolio.onrender.com/api';
+    const api_path = 'https://abd-portfolio.azurewebsites.net/api';
 
     const get_tickers_equity = async() => {
         const response = await(fetch(`${api_path}/tickers_equity/`));
@@ -12,9 +12,7 @@ export const AuthProvider = ({children}) => {
         return data;
     }
     const search_tickers = async (text) => {
-        const response = await fetch(
-        `https://abd-portfolio.onrender.com/api/search_${current_selection}/?search=${text}`,
-        );
+        const response = await fetch(`${api_path}/search_${current_selection}/?search=${text}`);
         const data = await response.json();
         return data;
     };
