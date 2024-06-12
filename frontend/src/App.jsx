@@ -9,7 +9,7 @@ function App() {
   return (
     <>
     <AuthProvider>
-    <Router>
+    <Router basename="/abd-portfolio">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/results" element={<Results />} />
