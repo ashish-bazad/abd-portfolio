@@ -472,29 +472,6 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const updateDimensions = () => {
-      if (volatility_chart_parent_div.current) {
-        const rect = volatility_chart_parent_div.current.getBoundingClientRect();
-        setDimensions({ width: rect.width - 2, height: rect.height - 2 });
-      }
-      if(price_chart_parent_div.current) {
-        const rect = price_chart_parent_div.current.getBoundingClientRect();
-        setDimensionsP({ width: rect.width - 2, height: (rect.height - 2) });
-      }
-    };
-
-    if(should_update_dimensions.current) {
-      should_update_dimensions.current = false;
-      updateDimensions();
-    }
-
-    window.addEventListener('resize', updateDimensions);
-    return () => {
-      window.removeEventListener('resize', updateDimensions);
-    };
-  }, []);
-
-  useEffect(() => {
     const updateHeight = () => {
       if(volatility_chart_parent_div.current) {
         const width = volatility_chart_parent_div.current.offsetWidth;
@@ -512,10 +489,29 @@ const Home = () => {
     }
 
     window.addEventListener('resize', updateHeight);
-    return () => {
-      window.removeEventListener('resize', updateHeight);
-    }
+    return () => window.removeEventListener('resize', updateHeight);
   }, [])
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (volatility_chart_parent_div.current) {
+        const rect = volatility_chart_parent_div.current.getBoundingClientRect();
+        setDimensions({ width: rect.width - 2, height: rect.height - 2 });
+      }
+      if(price_chart_parent_div.current) {
+        const rect = price_chart_parent_div.current.getBoundingClientRect();
+        setDimensionsP({ width: rect.width - 2, height: (rect.height - 2) });
+      }
+    };
+
+    if(should_update_dimensions.current) {
+      should_update_dimensions.current = false;
+      updateDimensions();
+    }
+
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
 
   return (
     <div className={style.home_container}>

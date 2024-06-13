@@ -5,18 +5,19 @@
 }
 .results {
     width: 100%;
-    max-width: 1440px;
+    max-width: 1600px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    margin: 20px 30px 20px 30px;
     font-size: 14px;
+    margin: 0;
 }
 .results_mode_selector {
     display: flex;
     gap: 30px;
-    width: 100%;
+    width: calc(100% - 30px);
     align-items: center;
+    margin: 0px 0px 0px 30px;
 }
 .results_mode_selector label {
     display: flex;
@@ -24,19 +25,6 @@
     gap: 10px;
 }
 
-.results_portfolio_value_evaluation_and_parameters {
-    margin-top: 30px;
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-}
-.results_portfolio_value_evaluation {
-    width: 45%;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
 .results_portfolio_value_evaluation_item {
     width: 100%;
     display: flex;
@@ -48,74 +36,84 @@
     display: flex;
     justify-content: space-between;
 }
-.portfolio_value_evaluation_item_data_item {
+.portfolio_value_eval_data {
     display: flex;
     flex-direction: column;
     font-size: 12px;
 }
 
-.results_portfolio_value_data {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-.results_portfolio_value_data_right {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 30%;
-}
 .results_portfolio_value_chart {
-    width: 69%;
-    height: 25vh;
+    width: 100%;
+    max-width: 1440px;
     border: 1px solid #ddd;
 }
-.results_portfolio_value_pie_chart {
-    height: 25vh;
-    width: 65%;
-}
+
 .results_portfolio_value {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-}
-.results_portfolio_value_items {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
+    width: 85%;
+    gap: 15px;
 }
 
 .split_view {
     width: 100%;
     margin-top: 30px;
     display: flex;
-    gap: 100px;
-    justify-content: space-between;
+    gap: 20px;
+    justify-content: center;
+}
+.split_view2 {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 20px;
 }
 .split_view_item {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    width: 100%;
+    width: calc(49% - 10px);
 }
 .split_view_item_data {
     display: flex;
     justify-content: space-between;
     width: 100%;
+    height: 264px;
 }
 .split_view_chart {
     width: 75%;
-    height: 20vh;
+    /* height: 264px; */
     border: 1px solid #ddd;
 }
 .split_view_data {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 15px;
 }
 .split_view_chart_2 {
     width: 100%;
-    height: 65vh;
     border: 1px solid #ddd;
+}
+
+.results_pie_chart_data_item, .results_pie_chart_data_item_2 {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 400px;
+}
+.results_pie_chart_data_item {
+    width: 100%;
+    justify-content: center;
+}
+.results_pie_chart_data_item2 {
+    width: calc(49% - 10px);
+    align-items: center;
+    justify-content: center;
+}
+.results_pie_chart {
+    width: 100%;
+    height: 380px;
 }
