@@ -75,7 +75,7 @@ const Results = () => {
             y: data_b_y,
             type: 'scatter',
             line: { color: '#228b22' },
-            name: '^NSEI'
+            name: results.benchmark_ticker ? results.benchmark_ticker : '!!!'
         }
     ]
     var data_monte_carlo_value = [

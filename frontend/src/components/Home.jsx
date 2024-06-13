@@ -518,7 +518,8 @@ const Home = () => {
       {analysing && (
         <div className={style.popup_container} style={{zIndex:'100'}}>
           <div className={style.loading}>
-            <h1>Processing...</h1>
+            <h1>Running Simulations...</h1>
+            <h2>This will take a while depending on your set parameters</h2>
           </div>
         </div>
       )}
@@ -542,7 +543,7 @@ const Home = () => {
                             </div>
                             <div className={style.analysis_options_input}>
                                 <label style={{ fontWeight: "bold", fontSize: "14px" }}>Number of Simulations : </label>
-                                <input type="number" id="number_of_simulations" max={5000} placeholder="5000" />
+                                <input type="number" id="number_of_simulations" max={20000} placeholder="5000" />
                             </div>
                             <div className={style.analysis_options_input}>
                                 <label style={{ fontWeight: "bold", fontSize: "14px" }}>Initial Amount : </label>
