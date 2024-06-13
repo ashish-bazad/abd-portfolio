@@ -551,13 +551,21 @@ const Home = () => {
                             <div className={style.analysis_options_input}>
                                 <label style={{ fontWeight: "bold", fontSize: "14px" }}>Benchmark Ticker : </label>
                                 <select defaultValue="^NSEI" id="benchmark_ticker" required={true}>
+                                    <option value="^GSPC">^GSPC</option>
+                                    <option value="^IXIC">^IXIC</option>
                                     <option value="^NSEI">^NSEI</option>
+                                    <option value="^NSEMDCP50">^NSEMDCP50</option>
+                                    <option value="^BSESN">^BSESN</option>
                                 </select>
                             </div>
                             <div className={style.analysis_options_input}>
                                 <label style={{ fontWeight: "bold", fontSize: "14px" }}>Market Ticker : </label>
                                 <select defaultValue="^NSEI" id="market_ticker" required={true}>
+                                    <option value="^GSPC">^GSPC</option>
+                                    <option value="^IXIC">^IXIC</option>
                                     <option value="^NSEI">^NSEI</option>
+                                    <option value="^NSEMDCP50">^NSEMDCP50</option>
+                                    <option value="^BSESN">^BSESN</option>
                                 </select>
                             </div>
                             {equity_bucket_min_weight !== null && (
