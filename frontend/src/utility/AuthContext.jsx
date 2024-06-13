@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useRef } from 'react';
+import { createContext } from 'react';
 const AuthContext = createContext();
 export default AuthContext;
 
@@ -7,44 +7,36 @@ export const AuthProvider = ({children}) => {
     const api_path = 'https://abd-portfolio.azurewebsites.net/api';
     // const api_path = 'http://127.0.0.1:8000/api';
 
-    const get_tickers_equity = async() => {
-        const response = await(fetch(`${api_path}/tickers_equity/`));
-        const data = await response.json();
-        return data;
+    const get_tickers = async(selection) => {
+        const response = await(fetch(`${api_path}/tickers_${selection}/`));
+        if(response.status === 200) {
+            const data = await response.json();
+            return data;
+        } else {
+            return {error: 'Error', status: response.status};
+        }
     }
     const search_tickers = async (text, current_selection) => {
         const response = await fetch(`${api_path}/search_${current_selection}/?search=${text}`);
-        const data = await response.json();
-        return data;
+        if(response.status === 200) {
+            const data = await response.json();
+            return data;
+        } else {
+            return {error: 'Error', status: response.status};
+        }
     };
-    const get_tickers_commodities = async() => {
-        const response = await(fetch(`${api_path}/tickers_commodities/`));
-        const data = await response.json();
-        return data;
-    }
-    const get_tickers_crypto = async() => {
-        const response = await(fetch(`${api_path}/tickers_crypto/`));
-        const data = await response.json();
-        return data;
-    }
-    const get_tickers_t_notes = async() => {
-        const response = await(fetch(`${api_path}/tickers_t_notes/`));
-        const data = await response.json();
-        return data;
-    }
-    const get_tickers_reit = async() => {
-        const response = await(fetch(`${api_path}/tickers_reit/`));
-        const data = await response.json();
-        return data;
-    }
     const get_tickers_data = async(tickers) => {
         let period = localStorage.getItem('period');
         if(period === null) {
             period = '1y';
         }
         const response = await(fetch(`${api_path}/tickers_data/?tickers=${tickers.map(ticker => encodeURIComponent(ticker)).join(',')}&period=${period}`));
-        const data = await response.json();
-        return data;
+        if(response.status === 200) {
+            const data = await response.json();
+            return data;
+        } else {
+            return {error: 'Error', status: response.status};
+        }
     }
     const analyze_data = async(request_data) => {
         const response = await(fetch(`${api_path}/data_analysis/`, {
@@ -66,14 +58,10 @@ export const AuthProvider = ({children}) => {
     }
 
     let contextData = {
-        get_tickers_equity,
-        get_tickers_commodities,
-        get_tickers_crypto,
-        get_tickers_t_notes,
-        get_tickers_reit,
         get_tickers_data,
         analyze_data,
         search_tickers,
+        get_tickers,
     }
     return (
         <AuthContext.Provider value = {contextData}>

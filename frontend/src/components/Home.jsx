@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import style from "./home.module.css";
 import Plot from 'react-plotly.js';
 import AuthContext from '../utility/AuthContext';
+import { BarLoader } from "react-spinners";
 
 const Home = () => {
-    let { get_tickers_equity, get_tickers_commodities, get_tickers_reit, get_tickers_t_notes, get_tickers_crypto, get_tickers_data, analyze_data, search_tickers } = useContext(AuthContext);
+    let { get_tickers, get_tickers_data, analyze_data, search_tickers } = useContext(AuthContext);
     let should_get_tickers = useRef(true);
     let should_create_bucket = useRef(true);
     let cms = useRef(0);
@@ -57,6 +58,12 @@ const Home = () => {
     let [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     let [dimensionsP, setDimensionsP] = useState({ width: 0, height: 0 });
     let should_update_height = useRef(true);
+    let [loading, setLoading] = useState(false);
+    let [searchLoading, setSearchLoading] = useState(false);
+    let [searchError, setSearchError] = useState(false);
+    let [search_error_status_code, setSearch_error_status_code] = useState(null);
+    let [tickersError, setTickersError] = useState(false);
+    let [tickersErrorStatusCode, setTickersErrorStatusCode] = useState(null);
     const navigate = useNavigate();
 
     var current_selection = "equity";
@@ -141,6 +148,7 @@ const Home = () => {
     };
     const get_tickers_table_data = async () => {
         setAdding_loading(true);
+        setLoading(true);
         const currentTime = new Date();
         const updateTime = new Date(currentTime);
         updateTime.setHours(15, 30, 0, 0); // Set update time to 3:30 PM
@@ -166,24 +174,49 @@ const Home = () => {
         if (needsUpdate) {
           // Get the list of tickers
           if (!localStorage.getItem("equity_list")) {
-              const data = await get_tickers_equity();
-              localStorage.setItem("equity_list", JSON.stringify(data.tickers));
+              const data = await get_tickers('equity');
+              if(data.error) {
+                setTickersError(true);
+                setTickersErrorStatusCode(data.status);
+                } else {
+                  localStorage.setItem("equity_list", JSON.stringify(data.tickers));
+                }
           }
           if (!localStorage.getItem("commodities_list")) {
-              const data = await get_tickers_commodities();
-              localStorage.setItem("commodities_list", JSON.stringify(data.tickers));
+              const data = await get_tickers('commodities');
+              if(data.error) {
+                setTickersError(true);
+                setTickersErrorStatusCode(data.status);
+              } else {
+                localStorage.setItem("commodities_list", JSON.stringify(data.tickers));
+              }
           }
           if (!localStorage.getItem("t_notes_list")) {
-              const data = await get_tickers_t_notes();
-              localStorage.setItem("t_notes_list", JSON.stringify(data.tickers));
+              const data = await get_tickers('t_notes');
+              if(data.error) {
+                setTickersError(true);
+                setTickersErrorStatusCode(data.status);
+              } else {
+                localStorage.setItem("t_notes_list", JSON.stringify(data.tickers));
+              }
           }
           if (!localStorage.getItem("reit_list")) {
-              const data = await get_tickers_reit();
-              localStorage.setItem("reit_list", JSON.stringify(data.tickers));
+              const data = await get_tickers('reit');
+              if(data.error) {
+                setTickersError(true);
+                setTickersErrorStatusCode(data.status);
+              } else {
+                localStorage.setItem("reit_list", JSON.stringify(data.tickers));
+              }
           }
           if (!localStorage.getItem("crypto_list")) {
-            const data = await get_tickers_crypto();
-            localStorage.setItem("crypto_list", JSON.stringify(data.tickers));
+            const data = await get_tickers('crypto');
+            if(data.error) {
+              setTickersError(true);
+              setTickersErrorStatusCode(data.status);
+            } else {
+              localStorage.setItem("crypto_list", JSON.stringify(data.tickers));
+            }
           }
           setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
           
@@ -210,6 +243,7 @@ const Home = () => {
           setSelectedTicker(Object.entries(JSON.parse(localStorage.getItem(`${current_selection}_list`)))[0]);
         }
         setAdding_loading(false);
+        setLoading(false);
     };
     useEffect(() => {
         if (should_get_tickers.current) {
@@ -271,14 +305,22 @@ const Home = () => {
     };
 
     const search_ticker = async (text) => {
+        setSearchLoading(true);
         const data = await search_tickers(text, current_selection);
-        setSearchedTickers(data.tickers);
+        if(data.error) {
+          setSearch_error_status_code(data.status);
+          setSearchError(true);
+        } else {
+          setSearchedTickers(data.tickers);
+        }
+        setSearchLoading(false);
     };
 
     useEffect(() => {
         if (searchText === "") {
         setTickers(JSON.parse(localStorage.getItem(`${current_selection}_list`)));
         setSearching(false);
+        setSearchError(false);
         } else {
         setSearching(true);
         search_ticker(searchText.toUpperCase());
@@ -325,22 +367,27 @@ const Home = () => {
         setTickers(tmp2);
         setTickersTableData(tmp3.table_data);
         } else {
-        tmp = [...checkedItems, ticker];
-        tmp2[ticker] = name;
-        let tmp3 = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
-        const data = await get_tickers_data([ticker]);
-        tmp3.volatility_data[ticker] = data.volatility_data[ticker];
-        tmp3.price_data[ticker] = data.price_data[ticker];
-        tmp3.table_data.SYMBOLS.push(data.table_data.SYMBOLS[0]);
-        tmp3.table_data.PRICE.push(data.table_data.PRICE[0]);
-        tmp3.table_data.CHANGE.push(data.table_data.CHANGE[0]);
-        tmp3.table_data.PCHANGE.push(data.table_data.PCHANGE[0]);
-        tmp3.table_data.LOW.push(data.table_data.LOW[0]);
-        tmp3.table_data.HIGH.push(data.table_data.HIGH[0]);
-        localStorage.setItem(`${current_selection}_list_data`, JSON.stringify(tmp3));
-        localStorage.setItem(`${current_selection}_list`, JSON.stringify(tmp2));
-        setTickers(tmp2);
-        setTickersTableData(tmp3.table_data);
+          let tmp3 = JSON.parse(localStorage.getItem(`${current_selection}_list_data`));
+          const data = await get_tickers_data([ticker]);
+          if(data.error) {
+            console.log(data.status);
+            tmp = [...checkedItems];
+          } else {
+            tmp = [...checkedItems, ticker];
+            tmp2[ticker] = name;
+            tmp3.volatility_data[ticker] = data.volatility_data[ticker];
+            tmp3.price_data[ticker] = data.price_data[ticker];
+            tmp3.table_data.SYMBOLS.push(data.table_data.SYMBOLS[0]);
+            tmp3.table_data.PRICE.push(data.table_data.PRICE[0]);
+            tmp3.table_data.CHANGE.push(data.table_data.CHANGE[0]);
+            tmp3.table_data.PCHANGE.push(data.table_data.PCHANGE[0]);
+            tmp3.table_data.LOW.push(data.table_data.LOW[0]);
+            tmp3.table_data.HIGH.push(data.table_data.HIGH[0]);
+            localStorage.setItem(`${current_selection}_list_data`, JSON.stringify(tmp3));
+            localStorage.setItem(`${current_selection}_list`, JSON.stringify(tmp2));
+            setTickers(tmp2);
+            setTickersTableData(tmp3.table_data);
+          }
         }
         setAdding_loading(false);
         setCheckedItems(tmp);
@@ -512,14 +559,32 @@ const Home = () => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-
   return (
     <div className={style.home_container}>
+      {loading && (
+        <div className={style.loading_page}>
+          <div className={style.loading_container}>
+            <h1>Gathering Latest Data</h1>
+            <BarLoader color="rgb(34, 103, 196" width='50%' />
+          </div>
+        </div>
+      )}
+      {tickersError && (
+        <div className={style.loading_page}>
+          <div className={style.loading_container}>
+            <h1 style={{color:'red'}}>Error Fetching Data</h1>
+            <h2 style={{color:'red'}}>Status Code: {tickersErrorStatusCode}</h2>
+          </div>
+        </div>
+      )}
       {analysing && (
         <div className={style.popup_container} style={{zIndex:'100'}}>
           <div className={style.loading}>
             <h1>Running Simulations...</h1>
-            <h2>This will take a while depending on your set parameters</h2>
+            <h2>This may take a while depending on your set parameters</h2>
+            <div className={style.barloader}>
+              <BarLoader color="rgb(34, 103, 196" width='30%' />
+            </div>
           </div>
         </div>
       )}
@@ -819,6 +884,7 @@ const Home = () => {
               </div>
             </div>
             <div className={style.table_container}>
+              {searchLoading === false && searchError === false && (
               <table>
                 <thead>
                   {searching === false && (
@@ -920,6 +986,19 @@ const Home = () => {
                     ))}
                 </tbody>
               </table>
+              )}
+              {searchLoading && (
+                <div className={style.loading_container_table}>
+                  <h2>Searching</h2>
+                  <BarLoader color="rgb(34, 103, 196)" width="50%" />
+                </div>
+              )}
+              {searchError && (
+                <div className={style.loading_container_table}>
+                  <h2 style={{color:'red'}}>Error</h2>
+                  <h3 style= {{color:'red'}}>Status Code : {search_error_status_code}</h3>
+                </div>
+              )}
             </div>
           </div>
           <div className={style.home_chart} id="home_chart">
