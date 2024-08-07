@@ -1087,6 +1087,7 @@ const Home = () => {
           <button className={style.controller_buttons_buttons} style={{ width: "120px" }} onClick={() => setShowBucket(true)} >View Bucket</button>
           <button className={style.controller_buttons_buttons} onClick={() => setAnalysisOptions(true)}>Next</button>
         </div>
+        <p>Made by <a href="https://github.com/ashish-dalal">Ashish Dalal</a> and <a href="https://github.com/ashish-bazad">Ashish Bazad</a></p>
       </div>
     </div>
   );
