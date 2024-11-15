@@ -4,8 +4,8 @@ export default AuthContext;
 
 export const AuthProvider = ({children}) => {
 
-    const api_path = 'https://abd-portfolio.azurewebsites.net/api';
-    // const api_path = 'http://127.0.0.1:8000/api';
+    // const api_path = 'https://abd-portfolio.azurewebsites.net/api';
+    const api_path = 'http://127.0.0.1:8000/api';
 
     const get_tickers = async(selection) => {
         const response = await(fetch(`${api_path}/tickers_${selection}/`));
